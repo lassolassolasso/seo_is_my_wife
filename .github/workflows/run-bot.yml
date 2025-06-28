@@ -1,0 +1,40 @@
+name: Запуск бота
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */5 * * *'  # каждые 5 часов
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: bot-restart
+      cancel-in-progress: true
+
+    env:
+      TOKEN: ${{ secrets.TOKEN }}
+
+    steps:
+      - name: Клонировать репозиторий
+        uses: actions/checkout@v3
+
+      - name: Установить Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Установить зависимости
+        run: |
+          pip install -r requirements.txt
+
+      - name: Подставить токен
+        run: |
+          sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
+
+      - name: Сделать движок исполняемым
+        run: chmod +x ./engines/stockfish
+
+      - name: Запустить бота
+        run: python user_interface.py
