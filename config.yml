@@ -8,9 +8,9 @@ engines:
     silence_stderr: false                 # Suppresses stderr output.
     move_overhead_multiplier: 1.0         # Increase if your bot flags games too often. Default move overhead is 1 second per 1 minute initital time.
     uci_options:                          # Arbitrary UCI options passed to the engine. (Commenting allowed)
-      Threads: 4                          # Max CPU threads the engine can use.
+      Threads: 6                          # Max CPU threads the engine can use.
       Hash: 512                           # Max memory (in megabytes) the engine can allocate.
-      Move Overhead: 220                  # Increase if your bot flags games too often.
+      Move Overhead: 250                  # Increase if your bot flags games too often.
 #  variants:                               # Engine used for variants when no suitable special engine is configured.
 #    dir: "./engines"                      # Directory containing the engine.
 #    name: "fairy-stockfish.exe"               # Binary name of the engine to use.
@@ -27,9 +27,9 @@ engines:
 
 syzygy:
   standard:
-    enabled: false                        # Activate local syzygy endgame tablebases.
+    enabled: false                         # Activate local syzygy endgame tablebases.
     paths:                                # Paths to local syzygy endgame tablebases.
-      - "/path/to/standard/syzygy"
+      - "./engines/syzygy"
     max_pieces: 7                         # Count of max pieces in the local syzygy endgame tablebases.
     instant_play: true                    # Whether the bot should play directly from syzygy without engine if possible.
   antichess:
@@ -65,7 +65,7 @@ opening_books:
 #     names:                              # List of names of books to use as black.
 #       - BlackBook
     standard:
-      selection: weighted_random          # Move selection is one of "weighted_random", "uniform_random" or "best_move".
+      selection: best_move          # Move selection is one of "weighted_random", "uniform_random" or "best_move".
 #     max_depth: 16                       # Half move max depth. (Comment this line for max depth)
       names:                              # List of names of books to use if there is no specific book for the time control, white, black or chess960.
         - DefaultBook
@@ -76,44 +76,44 @@ opening_books:
 
 online_moves:
   opening_explorer:
-    enabled: false                        # Activate online moves from Lichess opening explorer. The move that has performed best for this bot is played.
+    enabled: true                         # Activate online moves from Lichess opening explorer. The move that has performed best for this bot is played.
     priority: 300                         # Priority with which this move source is used. Higher priority is used first.
     only_without_book: false              # Whether the Lichess opening explorer should only be used if there is no matching book.
-    use_for_variants: false               # Whether the Lichess opening explorer should be used for other variants than standard and chess960.
-    min_time: 10                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
+    use_for_variants: true                # Whether the Lichess opening explorer should be used for other variants than standard and chess960.
+    min_time: 20                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 5                            # Time the server has to respond.
-    min_games: 5                          # Minimum number of games in which the position must have occurred.
-    only_with_wins: false                 # Whether to play only moves that have won before.
+    min_games: 10                          # Minimum number of games in which the position must have occurred.
+    only_with_wins: true                  # Whether to play only moves that have won before.
     selection: "performance"              # Move selection is "performance" or "win_rate".
-    anti: false                           # Whether to play the moves in which the opponent performs the worst.
-#   max_depth: 16                         # Half move max depth. (Comment this line for max depth)
+    anti: true                            # Whether to play the moves in which the opponent performs the worst.
+    max_depth: 20                         # Half move max depth. (Comment this line for max depth)
 #   max_moves: 1                          # Max number of moves played from Lichess opening explorer. (Comment this line for max moves)
   lichess_cloud:
-    enabled: false                        # Activate online moves from Lichess cloud eval.
+    enabled: true                         # Activate online moves from Lichess cloud eval.
     priority: 200                         # Priority with which this move source is used. Higher priority is used first.
     only_without_book: false              # Whether the cloud should only be used if there is no matching book.
-    min_eval_depth: 10                    # Minimum evaluation depth.
+    min_eval_depth: 20                    # Minimum evaluation depth.
     min_time: 10                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 5                            # Time the server has to respond.
-#   max_depth: 16                         # Half move max depth. (Comment this line for max depth)
+    max_depth: 30                         # Half move max depth. (Comment this line for max depth)
 #   max_moves: 1                          # Max number of moves played from Lichess cloud eval. (Comment this line for max moves)
   chessdb:
-    enabled: false                        # Activate online moves from https://chessdb.cn/queryc_en/
+    enabled: true                         # Activate online moves from https://chessdb.cn/queryc_en/
     priority: 100                         # Priority with which this move source is used. Higher priority is used first.
     only_without_book: false              # Whether the chessdb should only be used if there is no matching book.
-    min_candidates: 1                     # Minimum number of candidate moves.
-    min_time: 10                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
+    min_candidates: 5                     # Minimum number of candidate moves.
+    min_time: 20                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 5                            # Time the server has to respond.
     selection: "best"                     # Move selection is one of "optimal", "best" or "good".
-#   max_depth: 16                         # Half move max depth. (Comment this line for max depth)
+    max_depth: 30                         # Half move max depth. (Comment this line for max depth)
 #   max_moves: 1                          # Max number of moves played from chessdb. (Comment this line for max moves)
   online_egtb:
-    enabled: false                        # Activate online endgame tablebases from Lichess.
-    min_time: 5                           # Time the bot must have at least to use the online move. +10 seconds in games without increment.
+    enabled: true                         # Activate online endgame tablebases from Lichess.
+    min_time: 20                           # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 3                            # Time the server has to respond.
 
 offer_draw:
-  enabled: false                           # Activate whether the bot should offer draw.
+  enabled: true                           # Activate whether the bot should offer draw.
   score: 10                               # If the absolute value of the score is less than or equal to this value, the bot offers/accepts draw (in cp)
   consecutive_moves: 10                   # How many moves in a row the absolute value of the score has to be below the draw value
   min_game_length: 35                     # Earliest move in which draw is offered.
@@ -123,7 +123,7 @@ resign:
   enabled: false                          # Activate whether the bot should resign games.
   score: -1000                            # If the score is less than or equal to this value, the bot resigns (in cp).
   consecutive_moves: 5                    # How many moves in a row the score has to be below the resign value.
-  against_humans: true                    # Activate whether these settings should apply against humans.
+  against_humans: false                    # Activate whether these settings should apply against humans.
 
 challenge:                                # Incoming challenges. (Commenting allowed)
   concurrency: 4                          # Number of games to play simultaneously.
@@ -136,35 +136,38 @@ challenge:                                # Incoming challenges. (Commenting all
     - standard
     - chess960
 #   - fromPosition
-    - antichess
-    - atomic
-    - crazyhouse
-    - horde
-    - kingOfTheHill
-    - racingKings
-    - threeCheck
-  time_controls:                          # Speeds or time controls in initial_minutes+increment_seconds format to accept.
-    - bullet
-    - blitz
-    - rapid
+#   - antichess
+#   - atomic
+#   - crazyhouse
+#   - horde
+#   - kingOfTheHill
+#   - racingKings
+#   - threeCheck
+   time_controls:                          # Speeds or time controls in initial_minutes+increment_seconds format to accept.
+    - 0.5+0
+#   - bullet
+#   - blitz
+#   - rapid
 #   - classical
 #   - 25+0
   bot_modes:                              # Game modes to accept against BOTs.
-#   - casual                              # Unrated games.
-    - rated                               # Rated games
+    - casual                              # Unrated games.
+#   - rated                               # Rated games
   human_modes:                            # Game modes to accept against humans.
     - casual                              # Unrated games.
-    - rated                               # Rated games
+#   - rated                               # Rated games
 
 matchmaking:
-  delay: 10                               # Time in seconds the bot must be idle before a new challenge is started.
+  delay: 180                              # Time in seconds the bot must be idle before a new challenge is started.
   timeout: 30                             # Time until a challenge is canceled.
-  selection: weighted_random              # Matchmkaing type selection is one of "weighted_random", "sequential" or "cyclic".
+  selection: cyclic                       # Matchmkaing type selection is one of "weighted_random", "sequential" or "cyclic".
   types:                                  # Matchmaking types of which one is selected before each game.
     bullet:                               # Arbitrary name of the matchmaking type. Names must be unique.
-      tc: 1+1                             # Time control in initial_minutes+increment_seconds format.
-#   casual_chess960:
-#     tc: 0.5+1
+      tc: 0.5+0                           # Time control in initial_minutes+increment_seconds format.
+      min_rating_diff: 300                # Minimum rating distance to opponent. Default: 0
+      max_rating_diff: 1000               # Maximum rating distance to opponent. Default: 10000
+ #   casual_chess960:
+#      tc: 0.5+1
 #     rated: false
 #     variant: chess960
 #   optional_settings:
@@ -183,11 +186,10 @@ messages:
   #   {cpu} to insert CPU information
   #   {ram} to insert RAM size
   # Any other words in curly braces will be removed.
-  greeting: "Ку бест! Меня создал @ChessClassic_555 ) Введи !help для получения списка команд. Приятной игры)" # Message sent to the opponent at the beginning of a game.
-  goodbye: "Гг Бест!"                                             # Message sent to the opponent after the end of a game.
-  greeting_spectators: "Ку бест! Меня создал @ChessClassic_555 ) Введи !help для получения списка команд. Приятного просмотра)" # Message sent to the spectators at the beginning of a game.
-  goodbye_spectators: "Спс за просмотр!)"                                           # Message sent to the spectators after the end of a game.
-
+  greeting: "Get ready, because I'm gonna DESTR0Y you! Good Luck - you're gonna need it!"                                                              # Message sent to the opponent at the beginning of a game.
+  goodbye: "Welp, GG's buddy! See ya' later."                                             # Message sent to the opponent after the end of a game.
+  greeting_spectators: "Here weee goo! Type !help for a list of commands I can respond to."                            # Message sent to the spectators at the beginning of a game.
+  goodbye_spectators: "Whew, that was tough. Catch ya' guys later - I've got some W0RK to do!"                                           # Message sent to the spectators after the end of a game.
 # whitelist:                              # List of users whose challenges are always accepted.
 #   - Username1
 #   - Username2
