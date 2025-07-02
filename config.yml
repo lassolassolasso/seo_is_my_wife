@@ -126,7 +126,7 @@ resign:
   against_humans: false                    # Activate whether these settings should apply against humans.
 
 challenge:                                # Incoming challenges. (Commenting allowed)
-  concurrency: 4                          # Number of games to play simultaneously.
+  concurrency: 2                          # Number of games to play simultaneously.
   bullet_with_increment_only: false       # Whether bullet games against BOTs should only be accepted with increment.
 # min_increment: 0                        # Minimum amount of increment to accept a challenge.
 # max_increment: 180                      # Maximum amount of increment to accept a challenge.
@@ -143,10 +143,10 @@ challenge:                                # Incoming challenges. (Commenting all
 #   - kingOfTheHill
 #   - racingKings
 #   - threeCheck
-   time_controls:                          # Speeds or time controls in initial_minutes+increment_seconds format to accept.
+time_controls:                          # Speeds or time controls in initial_minutes+increment_seconds format to accept.
     - bullet
-#   - blitz
-#   - rapid
+    - blitz
+    - rapid
 #   - classical
 #   - 25+0
   bot_modes:                              # Game modes to accept against BOTs.
