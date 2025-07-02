@@ -37,4 +37,4 @@ jobs:
         run: chmod +x ./engines/stockfish
 
       - name: Запустить бота
-        run: python user_interface.py
+        run: python -u user_interface.py
