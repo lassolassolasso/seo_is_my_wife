@@ -76,9 +76,9 @@ class Chatter:
             await self.api.send_chat_message(self.game_info.id_, 'spectator', self.spectator_goodbye)
 
     async def send_abortion_message(self) -> None:
-        await self.api.send_chat_message(self.game_info.id_, 'player', ('Too bad you weren\'t there. '
+        await self.api.send_chat_message(self.game_info.id_, 'player', ('You couldn't come? Aw man.. I was looking forward to playing with you. '
                                                                         'Feel free to challenge me again, '
-                                                                        'I will accept the challenge if possible.'))
+                                                                        'I will accept the challenge if possible. Till then, Good Bye!')
 
     async def _handle_command(self, chat_message: Chat_Message) -> None:
         match chat_message.text[1:].lower():
@@ -103,7 +103,7 @@ class Chatter:
                 self.print_eval_rooms.add(chat_message.room)
                 await self.api.send_chat_message(self.game_info.id_,
                                                  chat_message.room,
-                                                 'Введите !quiet, чтобы остановить печать оценки.')
+                                                 'Type !quiet to stop eval printing.')
                 await self._send_last_message(chat_message.room)
             case 'quiet':
                 self.print_eval_rooms.discard(chat_message.room)
@@ -112,16 +112,16 @@ class Chatter:
                     return
 
                 if not (message := self._append_pv()):
-                    message = 'Нет доступных модулей.'
+                    message = 'No modules available.'
 
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, message)
             case 'ram':
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, self.ram_message)
             case 'help' | 'commands':
                 if chat_message.room == 'player':
-                    message = 'Поддерживаемые команды: !cpu, !draw, !eval, !motor, !name, !printeval, !ram'
+                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !ram'
                 else:
-                    message = 'Поддерживаемые команды: !cpu, !draw, !eval, !motor, !name, !printeval, !pv, !ram'
+                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !pv, !ram'
 
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, message)
 
@@ -165,16 +165,16 @@ class Chatter:
 
     def _get_draw_message(self, config: Config) -> str:
         if not config.offer_draw.enabled:
-            return 'Этот бот не будет ни принимать, ни предлагать ничьи.'
+            return 'I will neither accept nor offer draws.'
 
         max_score = config.offer_draw.score / 100
 
-        return (f'Бот предлагает ничью на ходу {config.offer_draw.min_game_length} или позже.'
+        return (f'I will accept/offer draws after move {config.offer_draw.min_game_length}.'
                 f'if the eval is within +{max_score:.2f} to -{max_score:.2f} for the last '
                 f'{config.offer_draw.consecutive_moves} moves.')
 
     def _get_name_message(self, version: str) -> str:
-        return (f'Я использую {self.lichess_game.engine.name} (BotLi {version})')
+        return (f'I use {self.lichess_game.engine.name} (BotLi {version})')
 
     def _format_message(self, message: str | None) -> str | None:
         if not message:
