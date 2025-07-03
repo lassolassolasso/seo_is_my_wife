@@ -76,7 +76,7 @@ class Chatter:
             await self.api.send_chat_message(self.game_info.id_, 'spectator', self.spectator_goodbye)
 
     async def send_abortion_message(self) -> None:
-        await self.api.send_chat_message(self.game_info.id_, 'player', ('Too bad you weren't there. '
+        await self.api.send_chat_message(self.game_info.id_, 'player', ('Too bad you weren't there.'
                                                                         'Feel free to challenge me again, '
                                                                         'I will accept the challenge if possible.'))
                                                                         
