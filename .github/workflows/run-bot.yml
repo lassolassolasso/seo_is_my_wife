@@ -1,4 +1,4 @@
-name: Запуск бота
+name: Run Bot
 
 on:
   workflow_dispatch:
@@ -17,24 +17,24 @@ jobs:
       TOKEN: ${{ secrets.TOKEN }}
 
     steps:
-      - name: Клонировать репозиторий
+      - name: Python Dependency Installation
         uses: actions/checkout@v3
 
-      - name: Установить Python
+      - name: Injection For My Repo
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Установить зависимости
+      - name: Install Requirements
         run: |
           pip install -r requirements.txt
 
-      - name: Подставить токен
+      - name: Insert Token
         run: |
           sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
-      - name: Сделать движок исполняемым
+      - name: Stockfish
         run: chmod +x ./engines/stockfish
 
-      - name: Запустить бота
+      - name: Run Bot
         run: python -u user_interface.py --matchmaking
