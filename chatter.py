@@ -164,7 +164,7 @@ class Chatter:
 
         max_score = config.offer_draw.score / 100
 
-        return (f'I will accept/offer draws after move {config.offer_draw.min_game_length}.'
+        return (f'I will accept/offer draws after move {config.offer_draw.min_game_length}'
                 f'if the eval is within +{max_score:.2f} to -{max_score:.2f} for the last '
                 f'{config.offer_draw.consecutive_moves} moves.')
 
