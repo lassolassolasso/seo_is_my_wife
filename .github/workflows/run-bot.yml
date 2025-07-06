@@ -3,7 +3,7 @@ name: Run Bot
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */5 * * *'  # каждые 5 часов
+    - cron: '0 */5 * * *'  
 
 jobs:
   run-bot:
@@ -17,10 +17,10 @@ jobs:
       TOKEN: ${{ secrets.TOKEN }}
 
     steps:
-      - name: Python Dependency Installation
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Injection For My Repo
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
@@ -31,10 +31,10 @@ jobs:
 
       - name: Insert Token
         run: |
-          sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
+          (Get-Content config.yml) -replace '^token:.*', "token: `"$env:TOKEN`"" | Set-Content config.yml
+        shell: pwsh
 
-      - name: Stockfish
-        run: chmod +x ./engines/stockfish
+      # Windows does not need chmod for exe files, so this step is removed.
 
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
