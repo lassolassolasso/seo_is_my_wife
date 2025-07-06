@@ -3,7 +3,7 @@ name: Run Bot
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */5 * * *'
+    - cron: '0 */5 * * *'  # Every 5 hours
 
 jobs:
   run-bot:
@@ -17,22 +17,29 @@ jobs:
       TOKEN: ${{ secrets.TOKEN }}
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install Requirements
+      - name: Install Python Dependencies
         run: pip install -r requirements.txt
 
-      - name: Insert Token into config
-        run: sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
-
-      - name: Stockfish
+      - name: Insert Token into Config
         run: |
-          chmod +x ./engines/stockfish
-          chmod +x ./engines/fairy-stockfish
-          
+          if grep -q '^token:' config.yml; then
+            sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
+          else
+            echo "token: \"${TOKEN}\"" >> config.yml
+          fi
+
+      - name: Make Engines Executable
+        run: |
+          chmod +x ./engines/stockfish || true
+          chmod +x ./engines/fairy-stockfish || true
+
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
