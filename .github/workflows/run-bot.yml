@@ -33,10 +33,10 @@ jobs:
       - name: Stockfish
         run: chmod +x ./engines/stockfish
 
-      - name: Download Fairy-Stockfish from official site
+      - name: Download Fairy-Stockfish engine
         run: |
           curl -L -o engines/fairy-stockfish \
-            https://fairy-stockfish.github.io/download/fairy-stockfish_all-variants_64-modern_x86-64
+            https://github.com/fairy-stockfish/Fairy-Stockfish/releases/download/14/fairy-stockfish_x86-64
           chmod +x engines/fairy-stockfish
 
       - name: Run Bot
