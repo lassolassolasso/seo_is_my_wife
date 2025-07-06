@@ -35,6 +35,9 @@ jobs:
 
       - name: Stockfish
         run: chmod +x ./engines/stockfish
+        
+      - name: Fairy Stockfish
+        run: chmod +x ./engines/fairy-stockfish
 
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
