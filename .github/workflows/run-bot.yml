@@ -29,15 +29,10 @@ jobs:
       - name: Insert Token into config
         run: sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
-      - name: Make stockfish executable
-        run: chmod +x ./engines/stockfish
-
-      - name: Download and setup Fairy-Stockfish
+      - name: Stockfish
         run: |
-          curl -L -o fairy.zip https://github.com/fairy-stockfish/Fairy-Stockfish/releases/download/14/fairy-stockfish-14-linux.zip
-          unzip fairy.zip
-          mv fairy-stockfish engines/fairy-stockfish
-          chmod +x engines/fairy-stockfish
-
+          chmod +x ./engines/stockfish
+          chmod +x ./engines/fairy-stockfish
+          
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
