@@ -3,7 +3,7 @@ name: Run Bot
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */5 * * *'  
+    - cron: '0 */5 * * *'  # every 5 hours
 
 jobs:
   run-bot:
@@ -33,8 +33,6 @@ jobs:
         run: |
           (Get-Content config.yml) -replace '^token:.*', "token: `"$env:TOKEN`"" | Set-Content config.yml
         shell: pwsh
-
-      # Windows does not need chmod for exe files, so this step is removed.
 
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
