@@ -35,9 +35,19 @@ jobs:
 
       - name: Stockfish
         run: chmod +x ./engines/stockfish
-        
-      - name: Fairy Stockfish
-        run: chmod +x ./engines/fairy-stockfish
+
+      - name: Download Fairy Stockfish
+        run: |
+          curl -L -o fairy-stockfish \
+            https://github.com/ianfab/Fairy-Stockfish/releases/download/14.1.1/fairy-stockfish_14.1.1_linux_x86-64
+          mkdir -p engines
+          mv fairy-stockfish engines/fairy-stockfish
+          chmod +x engines/fairy-stockfish
+
+      - name: Test Fairy Stockfish
+        run: |
+          file engines/fairy-stockfish
+          ./engines/fairy-stockfish bench 1
 
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
