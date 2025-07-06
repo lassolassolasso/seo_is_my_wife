@@ -3,7 +3,7 @@ name: Run Bot
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */5 * * *'  
+    - cron: '0 */5 * * *'
 
 jobs:
   run-bot:
@@ -38,11 +38,11 @@ jobs:
 
       - name: Download and extract Fairy-Stockfish
         run: |
-          curl -L -o fairy-stockfish.tar.xz \
-            https://github.com/ianfab/Fairy-Stockfish/releases/download/14.1.1/fairy-stockfish_14.1.1_linux-x86-64-modern.tar.xz
+          curl -L -o fairy.tar.gz \
+            https://fairy-stockfish.github.io/download/fairy-stockfish_x86-64-modern.tar.gz
           mkdir -p engines
-          tar -xf fairy-stockfish.tar.xz
-          mv fairy-stockfish_14.1.1_linux-x86-64-modern/fairy-stockfish engines/fairy-stockfish
+          tar -xzf fairy.tar.gz
+          mv fairy-stockfish engines/fairy-stockfish
           chmod +x engines/fairy-stockfish
 
       - name: Test Fairy-Stockfish
