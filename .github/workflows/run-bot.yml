@@ -31,13 +31,10 @@ jobs:
           sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
       - name: Stockfish
-        run: chmod +x ./engines/stockfish
-
-      - name: Download Fairy-Stockfish engine
         run: |
-          curl -L -o engines/fairy-stockfish \
-            https://github.com/fairy-stockfish/Fairy-Stockfish/releases/download/14/fairy-stockfish_x86-64
-          chmod +x engines/fairy-stockfish
+          chmod +x ./engines/stockfish
+          chmod +x ./engines/fairy-stockfish
+
 
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
