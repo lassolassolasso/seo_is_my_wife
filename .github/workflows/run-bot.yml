@@ -26,15 +26,13 @@ jobs:
       - name: Install Requirements
         run: pip install -r requirements.txt
 
-      - name: Insert Token
-        run: |
-          sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
+      - name: Insert Token into config
+        run: sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
       - name: Stockfish
         run: |
           chmod +x ./engines/stockfish
           chmod +x ./engines/fairy-stockfish
-
-
+          
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
