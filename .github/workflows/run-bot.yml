@@ -17,17 +17,14 @@ jobs:
       TOKEN: ${{ secrets.TOKEN }}
 
     steps:
-      - name: Python Dependency Installation
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Injection For My Repo
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
       - name: Install Requirements
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Insert Token
         run: |
@@ -36,18 +33,11 @@ jobs:
       - name: Stockfish
         run: chmod +x ./engines/stockfish
 
-      - name: Download Fairy-Stockfish engine
+      - name: Download Fairy-Stockfish from official site
         run: |
-          curl -L -o fairy-stockfish \
-            https://github.com/fairy-stockfish/Fairy-Stockfish/releases/download/14.0/fairy-stockfish_x86-64
-          mkdir -p engines
-          mv fairy-stockfish engines/fairy-stockfish
+          curl -L -o engines/fairy-stockfish \
+            https://fairy-stockfish.github.io/download/fairy-stockfish_all-variants_64-modern_x86-64
           chmod +x engines/fairy-stockfish
-
-      - name: Test Fairy-Stockfish
-        run: |
-          file engines/fairy-stockfish
-          ./engines/fairy-stockfish bench 1
 
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
