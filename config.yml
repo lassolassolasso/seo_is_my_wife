@@ -198,7 +198,7 @@ messages:
 #   - Username1
 #   - Username2
 
-# blacklist:                              # List of users who are not challenged and whose challenges are declined.
+  blacklist:                              # List of users who are not challenged and whose challenges are declined.
     - AndroMonsterFish
 #   - Username2
 
