@@ -3,7 +3,7 @@ token:          # Lichess OAuth2 Token.
 engines:
   standard:                               # Engine used for standard chess and when no suitable special engine is configured.
     dir: "./engines"                      # Directory containing the engine.
-    name: "stockfish"                     # Binary name of the engine to use.
+    name: "stockfish"          # Binary name of the engine to use (updated for Windows).
     ponder: true                          # Think on opponent's time.
     silence_stderr: false                 # Suppresses stderr output.
     move_overhead_multiplier: 1.0         # Increase if your bot flags games too often. Default move overhead is 1 second per 1 minute initital time.
@@ -13,7 +13,7 @@ engines:
       Move Overhead: 250                  # Increase if your bot flags games too often.
   variants:                               # Engine used for variants when no suitable special engine is configured.
     dir: "./engines"                      # Directory containing the engine.
-    name: "fairy-stockfish-largeboard_x86-64.exe"               # Binary name of the engine to use.
+    name: "fairy-stockfish-largeboard_x86-64.exe" # Binary name of the engine to use (Windows .exe).
     ponder: true                          # Think on opponent's time.
     silence_stderr: false                 # Suppresses stderr output.
     move_overhead_multiplier: 1.0         # Increase if your bot flags games too often. Default move overhead is 1 second per 1 minute initital time.
@@ -189,7 +189,7 @@ messages:
   #   {cpu} to insert CPU information
   #   {ram} to insert RAM size
   # Any other words in curly braces will be removed.
-  greeting: "Get ready, because I'm gonna DESTR0Y you! Good Luck - you're gonna need it!"                                                              # Message sent to the opponent at the beginning of a game.
+  greeting: "Get ready, because I'm gonna DESTR0Y you! Good Luck - you're gonna need it!"                                                              # Message sent to the opponent at the beginning o[...]
   goodbye: "Welp, GG's buddy! See ya' later."                                             # Message sent to the opponent after the end of a game.
   greeting_spectators: "Here weee goo! Type !help for a list of commands I can respond to."                            # Message sent to the spectators at the beginning of a game.
   goodbye_spectators: "Whew, that was tough. Catch ya' guys later - I've got some W0RK to do!"                                           # Message sent to the spectators after the end of a game.
