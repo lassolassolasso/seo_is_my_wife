@@ -27,16 +27,16 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Insert Token
-        run: |
-          sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
+        run: sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
-      - name: Stockfish
+      - name: Make stockfish executable
         run: chmod +x ./engines/stockfish
 
-      - name: Download Fairy-Stockfish engine
+      - name: Download and setup Fairy-Stockfish (Linux)
         run: |
-          curl -L -o engines/fairy-stockfish \
-            https://github.com/fairy-stockfish/Fairy-Stockfish/releases/download/14/fairy-stockfish_x86-64
+          curl -L -o fairy.zip https://github.com/fairy-stockfish/Fairy-Stockfish/releases/download/14/fairy-stockfish-14-linux.zip
+          unzip fairy.zip
+          mv fairy-stockfish engines/fairy-stockfish
           chmod +x engines/fairy-stockfish
 
       - name: Run Bot
