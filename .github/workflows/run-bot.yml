@@ -36,12 +36,11 @@ jobs:
       - name: Stockfish
         run: chmod +x ./engines/stockfish
 
-      - name: Download and extract Fairy-Stockfish
+      - name: Download Fairy-Stockfish engine
         run: |
-          curl -L -o fairy.tar.gz \
-            https://fairy-stockfish.github.io/download/fairy-stockfish_x86-64-modern.tar.gz
+          curl -L -o fairy-stockfish \
+            https://github.com/fairy-stockfish/Fairy-Stockfish/releases/download/14.0/fairy-stockfish_x86-64
           mkdir -p engines
-          tar -xzf fairy.tar.gz
           mv fairy-stockfish engines/fairy-stockfish
           chmod +x engines/fairy-stockfish
 
