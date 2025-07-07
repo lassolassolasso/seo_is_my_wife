@@ -21,7 +21,7 @@ engines:
     uci_options:                          # Arbitrary UCI options passed to the engine. (Commenting allowed)
       Threads: 6                          # Max CPU threads the engine can use.
       Hash: 512                           # Max memory (in megabytes) the engine can allocate.
-      Move Overhead: 250                  # Increase if your bot flags games too often.
+      Move Overhead: 100                  # Increase if your bot flags games too often.
  # Use the same pattern for 'bullet', 'blitz', 'rapid', 'classical',
 # 'antichess', 'atomic', 'chess960', 'crazyhouse', 'horde', 'kingofthehill', 'racingkings' and '3check' as well.
 # Append '_white' or '_black' to use the engine only as the specific color.
