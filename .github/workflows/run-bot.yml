@@ -17,22 +17,13 @@ jobs:
       TOKEN: ${{ secrets.TOKEN }}
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
+      - name: Python Dependency Installation
+        uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Injection For My Repo
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Install Requirements
         run: |
@@ -42,11 +33,14 @@ jobs:
         run: |
           sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
-      - name: Set Executable Permissions
+      - name: Download latest Stockfish Dev
         run: |
-          chmod +x ./engines/stockfish
-          chmod +x ./engines/fairy-stockfish
+          curl -L -o stockfish.zip https://abrok.eu/stockfish/stockfish-linux-modern.zip
+          unzip -o stockfish.zip -d engines/
+          chmod +x engines/stockfish
+
+      - name: Fairy Stockfish
+        run: chmod +x ./engines/fairy-stockfish
 
       - name: Run Bot
-        run: |
-          python -u user_interface.py --matchmaking
+        run: python -u user_interface.py --matchmaking
