@@ -33,8 +33,11 @@ jobs:
         run: |
           sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
-      - name: Make Stockfish executable
-        run: chmod +x ./engines/stockfish
+      - name: Download latest Stockfish dev
+        run: |
+          curl -L -o stockfish.zip http://abrok.eu/stockfish/latest/linux/stockfish_x64_modern.zip
+          unzip -o stockfish.zip -d engines/
+          chmod +x engines/stockfish*
 
       - name: Make Fairy-Stockfish executable
         run: chmod +x ./engines/fairy-stockfish
