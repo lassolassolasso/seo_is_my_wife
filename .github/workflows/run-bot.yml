@@ -17,25 +17,22 @@ jobs:
       TOKEN: ${{ secrets.TOKEN }}
 
     steps:
-      - name: Python Dependency Installation
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Injection For My Repo
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
       - name: Install Requirements
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Insert Token
-        run: |
-          sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
+        run: sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
       - name: Download latest Stockfish Dev
         run: |
-          curl -L -o stockfish.zip "$(curl -s https://abrok.eu/stockfish/ | grep -E 'Linux x64 for modern computers.*\.zip' | head -n1 | sed -E 's/.*href="([^"]+)".*/\1/')"
+          curl -L -o stockfish.zip \
+            http://abrok.eu/stockfish/latest/linux/stockfish_x64_modern.zip
           unzip -o stockfish.zip -d engines/
           chmod +x engines/stockfish
 
