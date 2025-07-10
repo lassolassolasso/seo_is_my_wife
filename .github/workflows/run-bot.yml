@@ -17,26 +17,26 @@ jobs:
       TOKEN: ${{ secrets.TOKEN }}
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
       - name: Install Requirements
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
 
       - name: Insert Token
-        run: sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
-
-      - name: Download latest Stockfish Dev
         run: |
-          curl -L -o stockfish.zip \
-            http://abrok.eu/stockfish/latest/linux/stockfish_x64_modern.zip
-          unzip -o stockfish.zip -d engines/
-          chmod +x engines/stockfish
+          sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
-      - name: Fairy Stockfish
+      - name: Make Stockfish executable
+        run: chmod +x ./engines/stockfish
+
+      - name: Make Fairy-Stockfish executable
         run: chmod +x ./engines/fairy-stockfish
 
       - name: Run Bot
