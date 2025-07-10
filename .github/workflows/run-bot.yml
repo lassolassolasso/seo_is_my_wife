@@ -35,7 +35,7 @@ jobs:
 
       - name: Download latest Stockfish Dev
         run: |
-          curl -L -o stockfish.zip https://abrok.eu/stockfish/stockfish-linux-modern.zip
+          curl -L -o stockfish.zip "$(curl -s https://abrok.eu/stockfish/ | grep -E 'Linux x64 for modern computers.*\.zip' | head -n1 | sed -E 's/.*href="([^"]+)".*/\1/')"
           unzip -o stockfish.zip -d engines/
           chmod +x engines/stockfish
 
