@@ -167,10 +167,7 @@ matchmaking:
       tc: 0.5+0
       min_rating_diff: 600
       max_rating_diff: 700
-    blitz: 
-      tc: 3+0
-      min_rating_diff: 400
-      max_rating_diff: 700
+   
              # Maximum rating distance to opponent. Default: 10000
  #   casual_chess960:
 #      tc: 0.5+1
