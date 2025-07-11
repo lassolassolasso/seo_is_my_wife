@@ -25,15 +25,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip 
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-    
-
       - name: Install Requirements
         run: |
           pip install -r requirements.txt
@@ -42,11 +33,20 @@ jobs:
         run: |
           sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
-      - name: Download latest Stockfish dev
+      - name: Cache Stockfish Binary
+        id: stockfish-cache
+        uses: actions/cache@v3
+        with:
+          path: engines/stockfish
+          key: ${{ runner.os }}-stockfish-dev-2025-07
+
+      - name: Download latest Stockfish dev if not cached
+        if: steps.stockfish-cache.outputs.cache-hit != 'true'
         run: |
           curl -L -o stockfish.zip http://abrok.eu/stockfish/latest/linux/stockfish_x64_modern.zip
           unzip -o stockfish.zip -d engines/
-          chmod +x engines/stockfish*
+          mv engines/stockfish* engines/stockfish
+          chmod +x engines/stockfish
 
       - name: Make Fairy-Stockfish executable
         run: chmod +x ./engines/fairy-stockfish
