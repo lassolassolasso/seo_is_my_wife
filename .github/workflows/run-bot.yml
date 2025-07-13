@@ -3,7 +3,7 @@ name: Run Bot
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */5 * * *'
+    - cron: '0 */5 * * *'  # Runs every 5 hours
 
 jobs:
   run-bot:
@@ -30,6 +30,8 @@ jobs:
           pip install -r requirements.txt
 
       - name: Insert Token
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
         run: |
           sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
