@@ -194,10 +194,10 @@ messages:
   #   {cpu} to insert CPU information
   #   {ram} to insert RAM size
   # Any other words in curly braces will be removed.
-  greeting: "Get ready, because I'm gonna DESTR0Y you! Good Luck - you're gonna need it!"                                                              # Message sent to the opponent at the beginning o[...]
-  goodbye: "Welp, GG's buddy! See ya' later."                                             # Message sent to the opponent after the end of a game.
-  greeting_spectators: "Here weee goo! Type !help for a list of commands I can respond to."                            # Message sent to the spectators at the beginning of a game.
-  goodbye_spectators: "Whew, that was tough. Catch ya' guys later - I've got some W0RK to do!"                                           # Message sent to the spectators after the end of a game.
+  greeting: "I don’t need luck. You’ll need a miracle. Good luck — it won’t help."                                                              # Message sent to the opponent at the beginning o[...]
+  goodbye: "Result: expected. Pattern: familiar."                                             # Message sent to the opponent after the end of a game.
+  greeting_spectators: "Status: Online | Mistakes: Not defined | Loss: N/A"                            # Message sent to the spectators at the beginning of a game.
+  goodbye_spectators: "That wasn’t a match. That was just a demonstration."                                           # Message sent to the spectators after the end of a game.
 # whitelist:                              # List of users whose challenges are always accepted.
 #   - Username1
 #   - Username2
