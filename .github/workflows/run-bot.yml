@@ -52,4 +52,4 @@ jobs:
         run: chmod +x ./engines/fairy-stockfish
 
       - name: Run Bot
-        run: python -u user_interface.py --matchmaking
+        run: python -u user_interface.py --upgrade
