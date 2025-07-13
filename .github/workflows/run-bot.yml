@@ -3,7 +3,7 @@ name: Run Bot
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */5 * * *'  # Runs every 5 hours
+    - cron: '0 */2 * * *' #runs a scheduled workflow every 2 hrs
 
 jobs:
   run-bot:
