@@ -10,7 +10,7 @@ engines:
     uci_options:                          # Arbitrary UCI options passed to the engine. (Commenting allowed)
       Threads: 6                          # Max CPU threads the engine can use.
       Hash: 2048                          # Max memory (in megabytes) the engine can allocate.
-      Move Overhead: 300                  # Increase if your bot flags games too often.
+      Move Overhead: 250                  # Increase if your bot flags games too often.
 
   variants:                               # Engine used for standard chess and when no suitable special engine is configured.
     dir: "./engines"                      # Directory containing the engine.
@@ -21,7 +21,7 @@ engines:
     uci_options:                          # Arbitrary UCI options passed to the engine. (Commenting allowed)
       Threads: 6                          # Max CPU threads the engine can use.
       Hash: 2048                           # Max memory (in megabytes) the engine can allocate.
-      Move Overhead: 300                  # Increase if your bot flags games too often.
+      Move Overhead: 250                  # Increase if your bot flags games too often.
       EvalFile: "3check-cb5f517c228b.nnue:antichess-dd3cbe53cd4e.nnue:atomic-2cf13ff256cc.nnue:crazyhouse-8ebf84784ad2.nnue:horde-28173ddccabe.nnue:kingofthehill-978b86d0e6a4.nnue:racingkings-636b95f085e3.nnue"
  # Use the same pattern for 'bullet', 'blitz', 'rapid', 'classical',
 # 'antichess', 'atomic', 'chess960', 'crazyhouse', 'horde', 'kingofthehill', 'racingkings' and '3check' as well.
