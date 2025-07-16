@@ -139,7 +139,6 @@ challenge:                                # Incoming challenges. (Commenting all
   variants:                               # Chess variants to accept (https://lichess.org/variant).
     - standard
     - chess960
-    - fromPosition
   time_controls:                          # Speeds or time controls in initial_minutes+increment_seconds format to accept.
     - bullet
     - blitz
