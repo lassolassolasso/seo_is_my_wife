@@ -42,26 +42,6 @@ jobs:
           mv engines/stockfish* engines/stockfish
           chmod +x engines/stockfish
 
-      - name: Cache Stockfish 17.1 binary
-        uses: actions/cache@v3
-        with:
-          path: engines/newsf
-          key: sf17.1-linux-newsf   
-
-      - name: Download Stockfish 17.1 AVX2 and rename to newsf (if not cached)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p engines
-          URL=$(curl -s https://api.github.com/repos/official-stockfish/Stockfish/releases/tags/sf_17.1 \
-            | grep browser_download_url \
-            | grep linux-x86-64-avx2.tar \
-            | cut -d '"' -f 4)
-          echo "Downloading $URL"
-          curl -L "$URL" -o sf171.tar
-          tar -xf sf171.tar
-          mv */stockfish engines/newsf
-          chmod +x engines/newsf
-
       - name: Make Fairy-Stockfish executable
         run: chmod +x ./engines/fairy-stockfish
 
