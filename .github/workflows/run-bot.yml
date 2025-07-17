@@ -50,15 +50,13 @@ jobs:
           path: engines/newsf
           key: sf17.1-linux-newsf   
 
-      - name: Download Stockfish 17.1 if not cached
+      - name: Download Stockfish 17.1 and rename to newsf
         run: |
-          if [ ! -f engines/newsf ]; then
-            mkdir -p engines
-            curl -L https://github.com/official-stockfish/Stockfish/releases/download/sf_17.1/stockfish-17.1-linux.zip -o sf171.zip
-            unzip -o sf171.zip
-            mv stockfish/stockfish engines/newsf
-            chmod +x engines/newsf
-          fi    
+          mkdir -p engines
+          curl -LO https://github.com/official-stockfish/Stockfish/releases/download/sf_17.1/stockfish-17.1-linux-x86-64-modern.tar
+          tar -xf stockfish-17.1-linux-x86-64-modern.tar
+          mv stockfish-17.1-linux-x86-64-modern/stockfish engines/newsf
+          chmod +x engines/newsf
 
       - name: Make Fairy-Stockfish executable
         run: chmod +x ./engines/fairy-stockfish
