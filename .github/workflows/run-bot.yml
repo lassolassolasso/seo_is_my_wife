@@ -29,13 +29,11 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-
       - name: Insert Token
         env:
           TOKEN: ${{ secrets.TOKEN }}
         run: |
           sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
-
 
       - name: Download latest Stockfish dev 
         run: |
@@ -50,16 +48,23 @@ jobs:
           path: engines/newsf
           key: sf17.1-linux-newsf   
 
-      - name: Download Stockfish 17.1 AVX2 and rename to newsf
+      - name: Download Stockfish 17.1 AVX2 and rename to newsf (if not cached)
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p engines
-          curl -LO https://stockfishchess.org/files/stockfish-ubuntu-x86-64-avx2.tar
-          tar -xf stockfish-ubuntu-x86-64-avx2.tar
-          mv stockfish-ubuntu-x86-64-avx2/stockfish engines/newsf
+          URL=$(curl -s https://api.github.com/repos/official-stockfish/Stockfish/releases/tags/sf_17.1 \
+            | grep browser_download_url \
+            | grep linux-x86-64-avx2.tar \
+            | cut -d '"' -f 4)
+          echo "Downloading $URL"
+          curl -L "$URL" -o sf171.tar
+          tar -xf sf171.tar
+          mv */stockfish engines/newsf
           chmod +x engines/newsf
-          
+
       - name: Make Fairy-Stockfish executable
         run: chmod +x ./engines/fairy-stockfish
 
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
+
