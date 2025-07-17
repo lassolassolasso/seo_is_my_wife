@@ -29,13 +29,6 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Download Stockfish 17.1 and rename to newsf
-        run: |
-          mkdir -p engines
-          curl -L https://github.com/official-stockfish/Stockfish/releases/download/sf_17.1/stockfish-17.1-linux.zip -o sf171.zip
-          unzip -o sf171.zip
-          mv stockfish/stockfish engines/newsf
-          chmod +x engines/newsf    
 
       - name: Insert Token
         env:
@@ -50,6 +43,22 @@ jobs:
           unzip -o stockfish.zip -d engines/
           mv engines/stockfish* engines/stockfish
           chmod +x engines/stockfish
+
+      - name: Cache Stockfish 17.1 binary
+        uses: actions/cache@v3
+        with:
+          path: engines/newsf
+          key: sf17.1-linux-newsf   
+
+      - name: Download Stockfish 17.1 if not cached
+        run: |
+          if [ ! -f engines/newsf ]; then
+            mkdir -p engines
+            curl -L https://github.com/official-stockfish/Stockfish/releases/download/sf_17.1/stockfish-17.1-linux.zip -o sf171.zip
+            unzip -o sf171.zip
+            mv stockfish/stockfish engines/newsf
+            chmod +x engines/newsf
+          fi    
 
       - name: Make Fairy-Stockfish executable
         run: chmod +x ./engines/fairy-stockfish
