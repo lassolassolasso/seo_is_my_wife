@@ -53,11 +53,11 @@ jobs:
       - name: Download Stockfish 17.1 AVX2 and rename to newsf
         run: |
           mkdir -p engines
-          curl -LO https://stockfishchess.org/files/stockfish-17.1-linux-x86-64-avx2.tar
-          tar -xf stockfish-17.1-linux-x86-64-avx2.tar
-          mv stockfish-17.1-linux-x86-64-avx2/stockfish engines/newsf
+          curl -LO https://stockfishchess.org/files/stockfish-ubuntu-x86-64-avx2.tar
+          tar -xf stockfish-ubuntu-x86-64-avx2.tar
+          mv stockfish-ubuntu-x86-64-avx2/stockfish engines/newsf
           chmod +x engines/newsf
-
+          
       - name: Make Fairy-Stockfish executable
         run: chmod +x ./engines/fairy-stockfish
 
