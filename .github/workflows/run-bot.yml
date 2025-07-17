@@ -29,21 +29,22 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Download Stockfish 17.1 and rename to newsf
+        run: |
+          mkdir -p engines
+          curl -L https://github.com/official-stockfish/Stockfish/releases/download/sf_17.1/stockfish-17.1-linux.zip -o sf171.zip
+          unzip -o sf171.zip
+          mv stockfish/stockfish engines/newsf
+          chmod +x engines/newsf    
+
       - name: Insert Token
         env:
           TOKEN: ${{ secrets.TOKEN }}
         run: |
           sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
-      - name: Cache Stockfish Binary
-        id: stockfish-cache
-        uses: actions/cache@v3
-        with:
-          path: engines/stockfish
-          key: ${{ runner.os }}-stockfish-dev-2025-07
 
-      - name: Download latest Stockfish dev if not cached
-        if: steps.stockfish-cache.outputs.cache-hit != 'true'
+      - name: Download latest Stockfish dev 
         run: |
           curl -L -o stockfish.zip http://abrok.eu/stockfish/latest/linux/stockfish_x64_modern.zip
           unzip -o stockfish.zip -d engines/
