@@ -47,5 +47,9 @@ jobs:
           curl -L -o engines/newsf https://github.com/MaggiCoder16/maggibot_backup/releases/download/sf17/newsf
           chmod +x engines/newsf
 
+      - name: Make Fairy Stockfish Executable
+        run: |
+          chmod +x engines/fairy-stockfish || true       
+      
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
