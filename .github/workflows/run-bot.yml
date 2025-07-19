@@ -47,12 +47,9 @@ jobs:
           curl -L -o engines/newsf https://github.com/MaggiCoder16/maggibot_backup/releases/download/sf17/newsf
           chmod +x engines/newsf
 
-      - name: Download latest Fairy-Stockfish
+      - name: Execute latest Fairy-Stockfish
         run: |
-          tag=$(curl -s https://api.github.com/repos/fairy-stockfish/Fairy-Stockfish/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
-          echo "Latest Fairy-Stockfish tag: $tag"
-          curl -L -o engines/fairy-stockfish https://github.com/fairy-stockfish/Fairy-Stockfish/releases/download/${tag}/fairy-stockfish-largeboard_x86-64-modern
-          chmod +x engines/fairy-stockfish
+          chmod +x engines/fairy-stockfish || true
 
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
