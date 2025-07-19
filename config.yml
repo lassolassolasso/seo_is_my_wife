@@ -148,6 +148,13 @@ challenge:                                # Incoming challenges. (Commenting all
     - standard
     - chess960
     - fromPosition
+    - antichess
+    - atomic
+    - horde
+    - kingOfTheHill
+    - racingKings
+    - crazyHouse
+    - threeCheck
   time_controls:                          # Speeds or time controls in initial_minutes+increment_seconds format to accept.
     - bullet
     - blitz
