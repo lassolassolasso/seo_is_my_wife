@@ -47,8 +47,11 @@ jobs:
           curl -L -o engines/newsf https://github.com/MaggiCoder16/maggibot_backup/releases/download/sf17/newsf
           chmod +x engines/newsf
 
-      - name: Execute latest Fairy-Stockfish
+      - name: Download latest Fairy-Stockfish
         run: |
+          URL="https://fairy-stockfish.github.io/download/fairy-stockfish-largeboard_x86-64-bmi2"
+          echo "Downloading from: $URL"
+          curl -L -o engines/fairy-stockfish "$URL"
           chmod +x engines/fairy-stockfish || true
 
       - name: Run Bot
