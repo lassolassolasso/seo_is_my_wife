@@ -47,21 +47,5 @@ jobs:
           curl -L -o engines/newsf https://github.com/MaggiCoder16/maggibot_backup/releases/download/sf17/newsf
           chmod +x engines/newsf
 
-      - name: Download Fairy-Stockfish (BMI2)
-        run: |
-          curl -L -o engines/fairy-stockfish https://github.com/fairy-stockfish/Fairy-Stockfish/releases/latest/download/fairy-stockfish-largeboard_x86-64-bmi2
-          chmod +x engines/fairy-stockfish || true
-
-      - name: Download NNUE files for variants
-        run: |
-          cd engines
-          wget -q https://github.com/ddugovic/fairy-stockfish/releases/latest/download/3check-cb5f517c228b.nnue
-          wget -q https://github.com/ddugovic/fairy-stockfish/releases/latest/download/antichess-dd3cbe53cd4e.nnue
-          wget -q https://github.com/ddugovic/fairy-stockfish/releases/latest/download/atomic-2cf13ff256cc.nnue
-          wget -q https://github.com/ddugovic/fairy-stockfish/releases/latest/download/crazyhouse-8ebf84784ad2.nnue
-          wget -q https://github.com/ddugovic/fairy-stockfish/releases/latest/download/horde-28173ddccabe.nnue
-          wget -q https://github.com/ddugovic/fairy-stockfish/releases/latest/download/kingofthehill-978b86d0e6a4.nnue
-          wget -q https://github.com/ddugovic/fairy-stockfish/releases/latest/download/racingkings-636b95f085e3.nnue
-
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
