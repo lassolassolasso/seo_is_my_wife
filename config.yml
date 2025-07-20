@@ -207,7 +207,7 @@ messages:
 
   blacklist:                              # List of users who are not challenged and whose challenges are declined.
     - AndroMonsterFish
-#   - Username2
+    - OceanicAbyssalord
 
 books:
   DefaultBook: "./engines/Book2.bin"
