@@ -115,14 +115,14 @@ class Chatter:
             case 'roast':
                 roast = self._get_random_roast()
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, roast)
-            case 'destroy':
+            case 'destroy' | 'troll':
                 destroy = self._get_random_destroy()
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, destroy)
             case 'help' | 'commands':
                 if chat_message.room == 'player':
-                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !ram, !roast, !destroy'
+                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !ram, !roast, !destroy, !troll'
                 else:
-                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !pv, !ram, !roast, !destroy'
+                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !pv, !ram, !roast, !destroy, !troll'
 
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, message)
 
