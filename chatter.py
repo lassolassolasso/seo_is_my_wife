@@ -1,7 +1,7 @@
 import os
 import platform
 from collections import defaultdict
-
+import random
 import psutil
 
 from api import API
@@ -74,7 +74,7 @@ class Chatter:
 
         if self.spectator_goodbye:
             await self.api.send_chat_message(self.game_info.id_, 'spectator', self.spectator_goodbye)
-                                                                                                                                             
+
     async def _handle_command(self, chat_message: Chat_Message) -> None:
         match chat_message.text[1:].lower():
             case 'cpu':
@@ -112,11 +112,17 @@ class Chatter:
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, message)
             case 'ram':
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, self.ram_message)
+            case 'roast':
+                roast = self._get_random_roast()
+                await self.api.send_chat_message(self.game_info.id_, chat_message.room, roast)
+            case 'destroy':
+                destroy = self._get_random_destroy()
+                await self.api.send_chat_message(self.game_info.id_, chat_message.room, destroy)
             case 'help' | 'commands':
                 if chat_message.room == 'player':
-                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !ram'
+                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !ram, !roast, !destroy'
                 else:
-                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !pv, !ram'
+                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !pv, !ram, !roast, !destroy'
 
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, message)
 
@@ -164,12 +170,12 @@ class Chatter:
 
         max_score = config.offer_draw.score / 100
 
-        return (f'I will accept/offer draws after move {config.offer_draw.min_game_length}'
+        return (f'I will accept/offer draws after move {config.offer_draw.min_game_length} '
                 f'if the eval is within +{max_score:.2f} to -{max_score:.2f} for the last '
                 f'{config.offer_draw.consecutive_moves} moves.')
 
     def _get_name_message(self, version: str) -> str:
-        return (f'I use {self.lichess_game.engine.name} (BotLi {version})')
+        return f'I use {self.lichess_game.engine.name} (BotLi {version})'
 
     def _format_message(self, message: str | None) -> str | None:
         if not message:
@@ -210,3 +216,29 @@ class Chatter:
             final_message = initial_message
 
         return final_message
+
+    def _get_random_roast(self) -> str:
+        roasts = [
+            "You play like your pieces are allergic to the center.",
+            "Your strategy is so deep, it hasn't surfaced yet.",
+            "I’ve seen pawns with more ambition than your whole army.",
+            "You're like a blunder wrapped in an inaccuracy.",
+            "Even Stockfish ran out of evals trying to explain your moves.",
+            "You’re the only person who turns a winning position into a puzzle... for yourself.",
+            "You treat the king like a tourist — always wandering.",
+            "You play like your mouse is on strike.",
+        ]
+        return random.choice(roasts)
+
+    def _get_random_destroy(self) -> str:
+        destroys = [
+            "I’m not just winning — I’m rewriting your opening book in real time.",
+            "This isn’t a game anymore. It’s a live demo of how to dismantle a player.",
+            "By the time you realize what's happening, you'll be down to your king and regrets.",
+            "Your board is starting to look like a clearance sale — everything must go!",
+            "If this were a movie, you'd already be rolling the credits.",
+            "You brought a pawn to a queen fight.",
+            "You're not losing, you're being systematically erased.",
+            "This isn't just checkmate — it's checkmate with style.",
+        ]
+        return random.choice(destroys)
