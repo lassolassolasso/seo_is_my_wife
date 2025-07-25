@@ -87,7 +87,7 @@ opening_books:
 
 online_moves:
   opening_explorer:
-    enabled: true
+    enabled: false
     use_for_variants: false
     priority: 200                         # Priority with which this move source is used. Higher priority is used first.
     only_without_book: true              # Whether the Lichess opening explorer should only be used if there is no matching book.
@@ -100,7 +100,7 @@ online_moves:
     max_depth: 20                         # Half move max depth. (Comment this line for max depth)
 #   max_moves: 1                          # Max number of moves played from Lichess opening explorer. (Comment this line for max moves)
   lichess_cloud:
-    enabled: true                         # Activate online moves from Lichess opening explorer. The move that has performed best for this bot is played.
+    enabled: false                         # Activate online moves from Lichess opening explorer. The move that has performed best for this bot is played.
     use_for_variants: false               # Whether the cloud should be used for other variants than standard and chess960.
     priority: 100                         # Priority with which this move source is used. Higher priority is used first.
     only_without_book: true              # Whether the cloud should only be used if there is no matching book.
