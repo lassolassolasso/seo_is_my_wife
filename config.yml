@@ -88,9 +88,9 @@ opening_books:
 online_moves:
   opening_explorer:
     enabled: true
+    use_for_variants: false
     priority: 200                         # Priority with which this move source is used. Higher priority is used first.
     only_without_book: false              # Whether the Lichess opening explorer should only be used if there is no matching book.
-    use_for_variants: false                # Whether the Lichess opening explorer should be used for other variants than standard and chess960.
     min_time: 20                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 5                            # Time the server has to respond.
     min_games: 10                          # Minimum number of games in which the position must have occurred.
@@ -123,7 +123,7 @@ online_moves:
     enabled: true                         # Activate online endgame tablebases from Lichess.
     min_time: 20                           # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 3                            # Time the server has to respond.
-
+    
 offer_draw:
   enabled: true                           # Activate whether the bot should offer draw.
   score: 10                               # If the absolute value of the score is less than or equal to this value, the bot offers/accepts draw (in cp)
