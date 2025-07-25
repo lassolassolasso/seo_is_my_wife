@@ -14,6 +14,7 @@ class Game:
         self.config = config
         self.username = username
         self.game_id = game_id
+        self.original_books = dict(config.opening_books.books) 
         self.was_aborted = False
         self.move_task: asyncio.Task[None] | None = None
 
@@ -21,6 +22,23 @@ class Game:
         game_stream_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         asyncio.create_task(self.api.get_game_stream(self.game_id, game_stream_queue))
         info = Game_Information.from_gameFull_event(await game_stream_queue.get())
+        opponent_is_bot = (info.black_title == 'BOT') if info.white_name == self.username else (info.white_title == 'BOT')
+        if not opponent_is_bot:
+            # Use Titans against humans
+            self.config.opening_books.books.clear()
+            self.config.opening_books.books.update({
+                "HumanBook": "./engines/Titans.bin"
+            })
+            self.config.use_opening_explorer = False
+            print("✔ Using Titans.bin for human opponent.")
+        else:
+            # Restore original books against bots
+            self.config.opening_books.books.clear()
+            self.config.opening_books.books.update(self.original_books)
+            self.config.use_opening_explorer = True
+            print("✔ Using default books for bot opponent.")
+            
+        
         lichess_game = await Lichess_Game.acreate(self.api, self.config, self.username, info)
         chatter = Chatter(self.api, self.config, self.username, info, lichess_game)
 
