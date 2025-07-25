@@ -8,9 +8,9 @@ engines:
     silence_stderr: false                 # Suppresses stderr output.
     move_overhead_multiplier: 1.0         # Increase if your bot flags games too often. Default move overhead is 1 second per 1 minute initital time.
     uci_options:                          # Arbitrary UCI options passed to the engine. (Commenting allowed)
-      Threads: 6                          # Max CPU threads the engine can use.
+      Threads: 7                          # Max CPU threads the engine can use.
       Hash: 2048                          # Max memory (in megabytes) the engine can allocate.
-      Move Overhead: 250                  # Increase if your bot flags games too often.
+      Move Overhead: 300                  # Increase if your bot flags games too often.
 
   variants:                               # Engine used for standard chess and when no suitable special engine is configured.
     dir: "./engines"                      # Directory containing the engine.
@@ -19,9 +19,9 @@ engines:
     silence_stderr: false                 # Suppresses stderr output.
     move_overhead_multiplier: 1.0         # Increase if your bot flags games too often. Default move overhead is 1 second per 1 minute initital time.
     uci_options:                          # Arbitrary UCI options passed to the engine. (Commenting allowed)
-      Threads: 6                          # Max CPU threads the engine can use.
+      Threads: 7                          # Max CPU threads the engine can use.
       Hash: 2048                           # Max memory (in megabytes) the engine can allocate.
-      Move Overhead: 250                  # Increase if your bot flags games too often.
+      Move Overhead: 300                  # Increase if your bot flags games too often.
       EvalFile: "horde-28173ddccabe.nnue:racingkings-636b95f085e3.nnue:crazyhouse-8ebf84784ad2.nnue:kingofthehill-978b86d0e6a4.nnue:antichess-dd3cbe53cd4e.nnue:atomic-2cf13ff256cc.nnue:3check-cb5f517c228b.nnue"
 
   chess960:                               # Engine used for standard chess and when no suitable special engine is configured.
@@ -89,7 +89,7 @@ online_moves:
   opening_explorer:
     enabled: true
     priority: 200                         # Priority with which this move source is used. Higher priority is used first.
-    only_without_book: true              # Whether the Lichess opening explorer should only be used if there is no matching book.
+    only_without_book: false              # Whether the Lichess opening explorer should only be used if there is no matching book.
     use_for_variants: false                # Whether the Lichess opening explorer should be used for other variants than standard and chess960.
     min_time: 20                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 5                            # Time the server has to respond.
@@ -103,7 +103,7 @@ online_moves:
     enabled: true                         # Activate online moves from Lichess opening explorer. The move that has performed best for this bot is played.
     use_for_variants: false               # Whether the cloud should be used for other variants than standard and chess960.
     priority: 100                         # Priority with which this move source is used. Higher priority is used first.
-    only_without_book: true              # Whether the cloud should only be used if there is no matching book.
+    only_without_book: false              # Whether the cloud should only be used if there is no matching book.
     min_eval_depth: 20                    # Minimum evaluation depth.
     min_time: 10                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 5                            # Time the server has to respond.
@@ -112,7 +112,7 @@ online_moves:
   chessdb:
     enabled: true                         # Activate online moves from https://chessdb.cn/queryc_en/
     priority: 100                         # Priority with which this move source is used. Higher priority is used first.
-    only_without_book: true              # Whether the chessdb should only be used if there is no matching book.
+    only_without_book: false              # Whether the chessdb should only be used if there is no matching book.
     min_candidates: 5                     # Minimum number of candidate moves.
     min_time: 20                          # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 5                            # Time the server has to respond.
