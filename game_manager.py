@@ -12,11 +12,11 @@ from matchmaking import Matchmaking
 
 
 class Game_Manager:
-    def __init__(self, api: API, config: Config, username: str) -> None:
+    def __init__(self, api: API, config: Config, username: str, engine) -> None:
         self.api = api
         self.config = config
         self.username = username
-
+        self.engine = engine
         self.challenger = Challenger(api)
         self.changed_event = Event()
         self.matchmaking = Matchmaking(api, config, username)
