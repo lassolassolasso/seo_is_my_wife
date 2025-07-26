@@ -223,7 +223,7 @@ class Game_Manager:
             self.tournaments[tournament.id_] = tournament
             print(f'External joined tournament "{tournament.name}" detected.')
 
-        game = Game(self.api, self.config, self.username, game_event['id'])
+        game = Game(self.api, self.config, self.username, game_event['id'], self.engine)
         task = asyncio.create_task(game.run())
         task.add_done_callback(self._task_callback)
         self.tasks[task] = game
