@@ -10,7 +10,7 @@ engines:
     uci_options:                          # Arbitrary UCI options passed to the engine. (Commenting allowed)
       Threads: 7                          # Max CPU threads the engine can use.
       Hash: 2048                          # Max memory (in megabytes) the engine can allocate.
-      Move Overhead: 275                  # Increase if your bot flags games too often.
+      Move Overhead: 175                  # Increase if your bot flags games too often.
 
   variants:                               # Engine used for standard chess and when no suitable special engine is configured.
     dir: "./engines"                      # Directory containing the engine.
