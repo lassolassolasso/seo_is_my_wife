@@ -9,13 +9,11 @@ from lichess_game import Lichess_Game
 
 
 class Game:
-    def __init__(self, api: API, config: Config, username: str, game_id: str, engine) -> None:
+    def __init__(self, api: API, config: Config, username: str, game_id: str) -> None:
         self.api = api
         self.config = config
         self.username = username
         self.game_id = game_id
-        self.engine = engine
-        self.original_books = dict(config.opening_books.books)  # ✅ store clean copy only once
         self.was_aborted = False
         self.move_task: asyncio.Task[None] | None = None
 
@@ -23,47 +21,6 @@ class Game:
         game_stream_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         asyncio.create_task(self.api.get_game_stream(self.game_id, game_stream_queue))
         info = Game_Information.from_gameFull_event(await game_stream_queue.get())
-
-        opponent_is_bot = (
-            info.black_title == 'BOT' if info.white_name == self.username
-            else info.white_title == 'BOT'
-        )
-
-        if not opponent_is_bot:
-            self.config.opening_books.books.clear()
-            self.config.opening_books.books.update({
-                "HumanBook": "./engines/Titans.bin"
-            })
-            self.config.use_opening_explorer = False
-            self.config.use_opening_cloud_eval = False
-            self.config.use_opening_database = False
-            print("✔ Using Titans.bin for human opponent.")
-        else:
-            self.config.opening_books.books.clear()
-            self.config.opening_books.books.update(self.original_books)
-            self.config.use_opening_explorer = True
-            self.config.use_opening_cloud_eval = False
-            self.config.use_opening_database = False
-            print("🤖 Bot opponent detected. Using default book setup.")
-
-        print("📚 Book config now:", self.config.opening_books.books)
-        print("🔌 Explorer:", self.config.use_opening_explorer)
-        print("🌩️ Cloud eval:", self.config.use_opening_cloud_eval)
-        print("💾 ChessDB:", self.config.use_opening_database)
-
-        # 🕹️ Your game loop, move handling etc. should be here
-        # Example:
-        await self.engine.run_game_loop(...)  # <- Your actual game logic
-        await self.engine.quit()
-
-        # 🧹 CLEANUP: Remove HumanBook if it was added
-        if "HumanBook" in self.config.opening_books.books:
-            del self.config.opening_books.books["HumanBook"]
-            print("🔁 HumanBook cleared after game.")
-
-          
-            
-        
         lichess_game = await Lichess_Game.acreate(self.api, self.config, self.username, info)
         chatter = Chatter(self.api, self.config, self.username, info, lichess_game)
 
