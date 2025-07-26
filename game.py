@@ -22,6 +22,8 @@ class Game:
         game_stream_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         asyncio.create_task(self.api.get_game_stream(self.game_id, game_stream_queue))
         info = Game_Information.from_gameFull_event(await game_stream_queue.get())
+        self.original_books = dict(self.config.opening_books.books)
+
 
         opponent_is_bot = (
             info.black_title == 'BOT' if info.white_name == self.username
