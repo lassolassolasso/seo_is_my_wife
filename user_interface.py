@@ -59,7 +59,7 @@ class User_Interface:
             await self._handle_bot_status(account.get('title'), allow_upgrade)
             await self._test_engines()
 
-            self.game_manager = Game_Manager(self.api, self.config, self.username)
+            self.game_manager = Game_Manager(self.api, self.config, username)
             self.game_manager_task = asyncio.create_task(self.game_manager.run())
 
             if tournament_id:
