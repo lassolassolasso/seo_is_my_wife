@@ -9,11 +9,12 @@ from lichess_game import Lichess_Game
 
 
 class Game:
-    def __init__(self, api: API, config: Config, username: str, game_id: str) -> None:
+    def __init__(self, api: API, config: Config, username: str, game_id: str, engine) -> None:
         self.api = api
         self.config = config
         self.username = username
         self.game_id = game_id
+        self.engine = engine
         self.original_books = dict(config.opening_books.books)  # ✅ store clean copy only once
         self.was_aborted = False
         self.move_task: asyncio.Task[None] | None = None
