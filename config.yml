@@ -80,7 +80,6 @@ opening_books:
       names:                              # List of names of books to use if there is no specific book for the time control, white, black or chess960.
         - DefaultBook
         - BackupBook
-        - HumanBook
 #   Use the same pattern for 'bullet', 'blitz', 'rapid', 'classical',
 #   'antichess', 'atomic', 'chess960', 'crazyhouse', 'horde', 'kingofthehill', 'racingkings' and '3check' as well.
 #   Append '_white' or '_black' to use the books only as the specific color.
@@ -213,4 +212,3 @@ messages:
 books:
   DefaultBook: "./engines/Book2.bin"
   BackupBook: "./engines/Book3.bin"
-  HumanBook: "./engines/Titans.bin"
