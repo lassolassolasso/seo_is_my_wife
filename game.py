@@ -22,21 +22,36 @@ class Game:
         game_stream_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         asyncio.create_task(self.api.get_game_stream(self.game_id, game_stream_queue))
         info = Game_Information.from_gameFull_event(await game_stream_queue.get())
-        opponent_is_bot = (info.black_title == 'BOT') if info.white_name == self.username else (info.white_title == 'BOT')
+
+        opponent_is_bot = (
+            info.black_title == 'BOT' if info.white_name == self.username
+            else info.white_title == 'BOT'
+        )
+
         if not opponent_is_bot:
-            # Use Titans against humans
+        # Human opponent → force Titans book and disable all other sources
             self.config.opening_books.books.clear()
             self.config.opening_books.books.update({
                 "HumanBook": "./engines/Titans.bin"
             })
             self.config.use_opening_explorer = False
+            self.config.use_opening_cloud_eval = False
+            self.config.use_opening_database = False
             print("✔ Using Titans.bin for human opponent.")
         else:
-            # Restore original books against bots
+        # Bot opponent → restore default books and enable explorer
             self.config.opening_books.books.clear()
             self.config.opening_books.books.update(self.original_books)
             self.config.use_opening_explorer = True
-            print("✔ Using default books for bot opponent.")
+            self.config.use_opening_cloud_eval = False
+            self.config.use_opening_database = False
+            print("🤖 Bot opponent detected. Using default book setup.")
+
+    # ✅ Debug print
+        print("📚 Book config now:", self.config.opening_books.books)
+        print("🔌 Explorer:", self.config.use_opening_explorer)
+        print("🌩️ Cloud eval:", self.config.use_opening_cloud_eval)
+        print("💾 ChessDB:", self.config.use_opening_database)          
             
         
         lichess_game = await Lichess_Game.acreate(self.api, self.config, self.username, info)
