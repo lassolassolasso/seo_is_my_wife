@@ -49,6 +49,17 @@ class Game:
         print("🔌 Explorer:", self.config.use_opening_explorer)
         print("🌩️ Cloud eval:", self.config.use_opening_cloud_eval)
         print("💾 ChessDB:", self.config.use_opening_database)
+
+        # 🕹️ Your game loop, move handling etc. should be here
+        # Example:
+        await self.engine.run_game_loop(...)  # <- Your actual game logic
+        await self.engine.quit()
+
+        # 🧹 CLEANUP: Remove HumanBook if it was added
+        if "HumanBook" in self.config.opening_books.books:
+            del self.config.opening_books.books["HumanBook"]
+            print("🔁 HumanBook cleared after game.")
+
           
             
         
