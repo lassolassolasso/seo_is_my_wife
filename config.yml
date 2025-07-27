@@ -70,9 +70,9 @@ opening_books:
 #     names:                              # List of names of books to use in bullet.
 #       - BulletBook
 #       - DefaultBook
-   standard_black:
-     selection: best_move                # Move selection is one of "weighted_random", "uniform_random" or "best_move".
-     names:                              # List of names of books to use as black.
+    standard_black:
+      selection: best_move                # Move selection is one of "weighted_random", "uniform_random" or "best_move".
+      names:                              # List of names of books to use as black.
        - blackbook
     standard:
       selection: best_move          # Move selection is one of "weighted_random", "uniform_random" or "best_move".
