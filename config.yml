@@ -212,4 +212,4 @@ messages:
 books:
   DefaultBook: "./engines/Book2.bin"
   BackupBook: "./engines/Book3.bin"
-  blackbook: "./engines/blackbook.bin
+  blackbook: "./engines/blackbook.bin"
