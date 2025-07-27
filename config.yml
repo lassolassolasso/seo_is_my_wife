@@ -70,10 +70,10 @@ opening_books:
 #     names:                              # List of names of books to use in bullet.
 #       - BulletBook
 #       - DefaultBook
-    standard_black:
-      selection: best_move                # Move selection is one of "weighted_random", "uniform_random" or "best_move".
-      names:                              # List of names of books to use as black.
-       - blackbook
+#    standard_black:
+ #     selection: best_move                # Move selection is one of "weighted_random", "uniform_random" or "best_move".
+  #    names:                              # List of names of books to use as black.
+   #    - blackbook
     standard:
       selection: best_move          # Move selection is one of "weighted_random", "uniform_random" or "best_move".
 #     max_depth: 16                       # Half move max depth. (Comment this line for max depth)
@@ -212,4 +212,4 @@ messages:
 books:
   DefaultBook: "./engines/Book2.bin"
   BackupBook: "./engines/Book3.bin"
-  blackbook: "./engines/blackbook.bin"
+#  blackbook: "./engines/blackbook.bin"
