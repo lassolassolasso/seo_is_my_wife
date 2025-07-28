@@ -32,8 +32,8 @@ class Challenge_Validator:
 
         # Check rated_standard_only for rated challenges
         is_rated: bool = challenge_event['rated']
-        if is_rated and self.config.challenge.casual_variants_only and variant not in ['standard', 'chess960']:
-            print(f'Rated challenges are only allowed for standard and chess960 variant according to config.')
+        if is_rated and self.config.challenge.casual_variants_only and variant != 'standard':
+            print(f'Rated challenges are only allowed for standard variant according to config.')
             return Decline_Reason.CASUAL
 
         if (len(self.game_manager.tournaments) +
