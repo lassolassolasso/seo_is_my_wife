@@ -59,8 +59,35 @@ class User_Interface:
             await self._handle_bot_status(account.get('title'), allow_upgrade)
             await self._test_engines()
 
+            # ✅ Always create game_manager first
             self.game_manager = Game_Manager(self.api, self.config, username)
+
+            # Auto-challenge if not in a tournament and flag is provided
+            if tournament_id is None and start_matchmaking is False and args.autochallenge:
+                opponent = args.autochallenge
+                print(f'Auto-challenging {opponent} 20 times (10 white, 10 black)...')
+
+                challenges = []
+                for _ in range(10):
+                    challenges.append(Challenge_Request(
+                        opponent, 30, 0, False, Challenge_Color.WHITE, Variant.STANDARD, 300))
+                    challenges.append(Challenge_Request(
+                        opponent, 30, 0, False, Challenge_Color.BLACK, Variant.STANDARD, 300))
+
+                self.game_manager.request_challenge(*challenges)
+
+            # Start game manager loop
             self.game_manager_task = asyncio.create_task(self.game_manager.run())
+
+            # Join tournament if needed
+            if tournament_id:
+                self.game_manager.request_tournament_joining(
+                    tournament_id, tournament_team, tournament_password)
+
+            # Start event handler
+            self.event_handler = Event_Handler(self.api, self.config, username, self.game_manager)
+            self.event_handler_task = asyncio.create_task(self.event_handler.run())
+
 
             if tournament_id:
                 self.game_manager.request_tournament_joining(tournament_id, tournament_team, tournament_password)
