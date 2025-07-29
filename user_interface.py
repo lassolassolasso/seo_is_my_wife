@@ -342,6 +342,8 @@ if __name__ == '__main__':
     parser.add_argument('--password', type=str, help='The tournament password, if one is required.')
     parser.add_argument('--upgrade', '-u', action='store_true', help='Upgrade account to BOT account.')
     parser.add_argument('--debug', '-d', action='store_true', help='Enable debug logging.')
+    parser.add_argument('--autochallenge', '-a', type=str,
+                    help='If not in tournament, challenge this user 20 times.')
     args = parser.parse_args()
 
     if args.debug:
