@@ -1,32 +1,29 @@
-name: Make Polyglot Book
+name: Build Polyglot Book
 
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    - name: Install dependencies
+    - name: Install build tools
       run: sudo apt-get update && sudo apt-get install -y build-essential
 
-    - name: Clone and build Polyglot
+    - name: Clone ddugovic/polyglot and build
       run: |
-        git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/sbish0p/polyglot.git
-        cd polyglot/src
+        git clone https://github.com/ddugovic/polyglot.git
+        cd polyglot
         make
 
-    - name: Generate book
+    - name: Generate opening book
       run: |
-        cd polyglot/src
-        ./polyglot make-book ../../filtered_960_bots_2200plus.pgn book.bin 40 16
+        cd polyglot
+        ./polyglot make-book -pgn ../filtered_960_bots_2200plus.pgn -bin book.bin -max-ply 40 -threads 16
         mv book.bin $GITHUB_WORKSPACE
 
-    - name: Upload book as artifact
+    - name: Upload book artifact
       uses: actions/upload-artifact@v4
       with:
         name: polyglot-book
