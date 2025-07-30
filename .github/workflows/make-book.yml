@@ -16,7 +16,7 @@ jobs:
 
     - name: Clone and build Polyglot
       run: |
-        git clone https://github.com/sbish0p/polyglot.git
+        git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/sbish0p/polyglot.git
         cd polyglot/src
         make
 
