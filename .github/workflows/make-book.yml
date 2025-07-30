@@ -14,21 +14,21 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y build-essential
 
-    - name: Clone Polyglot (correct branch and folder)
+    - name: Clone Polyglot (dukegod fork with Makefile)
       run: |
-        git clone https://github.com/ddugovic/polyglot.git
-        cd polyglot/src/polyglot
+        git clone https://github.com/dukegod/polyglot.git
+        cd polyglot
         make
 
-    - name: Make Book
+    - name: Make Polyglot Book
       run: |
-        ./polyglot/src/polyglot/polyglot make-book \
+        ./polyglot/polyglot make-book \
           -pgn filtered_960_bots_2200plus.pgn \
           -bin book.bin \
           -max-ply 40 \
           -threads 16
 
-    - name: Upload .bin file
+    - name: Upload book.bin
       uses: actions/upload-artifact@v4
       with:
         name: chess960-book
