@@ -14,9 +14,6 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y build-essential
 
-    - name: Setup GitHub credentials
-      run: git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
     - name: Clone Polyglot (dukegod fork with Makefile)
       run: |
         git clone https://github.com/dukegod/polyglot.git
@@ -25,11 +22,7 @@ jobs:
 
     - name: Make Polyglot Book
       run: |
-        ./polyglot/polyglot make-book \
-          -pgn filtered_960_bots_2200plus.pgn \
-          -bin book.bin \
-          -max-ply 40 \
-          -threads 16
+        ./polyglot/polyglot make-book filtered_960_bots_2200plus.pgn book.bin 40 16
 
     - name: Upload book.bin
       uses: actions/upload-artifact@v4
