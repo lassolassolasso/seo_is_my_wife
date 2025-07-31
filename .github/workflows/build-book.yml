@@ -35,8 +35,8 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        git config user.name "github-actions"
-        git config user.email "actions@github.com"
+        git config user.name "MaggiCoder16"
+        git config user.email "MaggiChess16@hotmail.com"
         git add engines/book.bin filtered_960_bots_2200plus.pgn
         git stash
         git pull --rebase
