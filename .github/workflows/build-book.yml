@@ -37,15 +37,14 @@ jobs:
       run: |
         git config user.name "github-actions"
         git config user.email "actions@github.com"
-        git add .
-        git stash          
-        git pull --rebase  
-        git stash pop      
-        git add .
+        git add engines/book.bin filtered_960_bots_2200plus.pgn
+        git stash
+        git pull --rebase
+        git stash pop
         if git diff --cached --quiet; then
           echo "No changes in book."
         else
           git commit -m "Update Chess960 opening book"
-          git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }} HEAD:main
+          git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
         fi
 
