@@ -1,45 +1,31 @@
-name: Fetch & Build Chess960 Book
+name: Build .bin Book
 
 on:
   workflow_dispatch:
 
 jobs:
-  build-book:
+  convert:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout repo
       uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Install Python
+      uses: actions/setup-python@v4
       with:
         python-version: '3.11'
 
-    - name: Install dependencies
-      run: pip install requests python-chess
+    - name: Install python-chess
+      run: pip install chess
 
-    - name: Fetch games (PGN)
-      run: python fetch_and_build.py
-
-    - name: Build Polyglot book
+    - name: Build .bin from PGN
       run: python create_polyglot.py
 
-    - name: Move book if exists
+    - name: Move bin to engines/
       run: |
         mkdir -p engines
-        if [ -f book.bin ]; then
-          mv book.bin engines/filtered_960_bots_2200plus.bin
-        else
-          echo "❌ book.bin not found. Skipping move."
-          exit 1
-        fi
-
-    - name: Upload as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: polyglot-book
-        path: engines/filtered_960_bots_2200plus.bin
+        mv filtered_960_bots_2200plus.bin engines/
 
     - name: Commit and push updated book
       env:
@@ -47,10 +33,23 @@ jobs:
       run: |
         git config user.name "github-actions"
         git config user.email "actions@github.com"
+
+        # Temporarily stash any uncommitted changes (like PGN/bin)
+        git stash --include-untracked
+
+        # Safely pull latest changes from the branch
         git pull origin "${GITHUB_REF_NAME}" --rebase || true
+
+        # Restore stashed files
+        git stash pop || true
+
+        # Stage only the .bin file
         git add engines/filtered_960_bots_2200plus.bin
+
+        # Commit and push if anything changed
         if git diff --cached --quiet; then
-          echo "No changes to commit."
+          echo "✅ No changes to commit."
         else
           git commit -m "Update Chess960 opening book"
           git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }} HEAD
+        fi
