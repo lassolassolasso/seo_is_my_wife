@@ -31,21 +31,8 @@ jobs:
         mkdir -p engines
         mv book.bin engines/
 
-    - name: Commit and push .bin file
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        git config user.name "MaggiCoder16"
-        git config user.email "MaggiChess16@hotmail.com"
-        git add engines/book.bin filtered_960_bots_2200plus.pgn
-        git stash
-        git pull --rebase
-        git stash pop
-        if git diff --cached --quiet; then
-          echo "No changes in book."
-        else
-          git commit -m "Update Chess960 opening book"
-          git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
-        fi
-
-
+    - name: Upload book.bin as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: chess960-opening-book
+        path: engines/book.bin
