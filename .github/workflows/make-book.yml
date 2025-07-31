@@ -11,10 +11,12 @@ jobs:
     - name: Checkout your repo
       uses: actions/checkout@v3
 
-    - name: Install build tools
-      run: sudo apt-get update && sudo apt-get install -y build-essential
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libleveldb-dev
 
-    - name: Clone sshivaji/polyglot repo
+    - name: Clone Polyglot (sshivaji)
       run: git clone https://github.com/sshivaji/polyglot.git
 
     - name: Build Polyglot
