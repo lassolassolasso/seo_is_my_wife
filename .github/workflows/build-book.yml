@@ -31,23 +31,19 @@ jobs:
         mkdir -p engines
         mv book.bin engines/
 
-    - name: Commit and push updated book
+    - name: Commit and push .bin file
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         git config user.name "github-actions"
         git config user.email "actions@github.com"
-
-        git stash --include-untracked || true
-        git pull origin "${GITHUB_REF_NAME}" --rebase || true
-        git stash pop || true
-
+        git pull --rebase
         git add engines/book.bin
-
         if git diff --cached --quiet; then
-          echo "✅ No changes to commit."
+          echo "No changes in book."
         else
           git commit -m "Update Chess960 opening book"
           git push
         fi
+
 
