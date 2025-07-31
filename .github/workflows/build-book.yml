@@ -1,0 +1,35 @@
+name: Build Chess960 Polyglot Book
+
+on:
+  push:
+    paths:
+      - '**.pgn'
+      - 'create_polyglot.py'
+      - '.github/workflows/build-book.yml'
+  workflow_dispatch:
+
+jobs:
+  build-book:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🧾 Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: 📦 Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install chess
+
+    - name: ⚙️ Run create_polyglot.py
+      run: python create_polyglot.py
+
+    - name: 📁 Move book.bin to engines/
+      run: |
+        mkdir -p engines
+        mv book.bin engines/filtered_960_bots_2200plus.bin
