@@ -14,19 +14,20 @@ jobs:
     - name: Install build tools
       run: sudo apt-get update && sudo apt-get install -y build-essential
 
-    - name: Clone working Polyglot repo
-      run: git clone https://github.com/ddugovic/polyglot.git
+    - name: Clone sshivaji/polyglot repo
+      run: git clone https://github.com/sshivaji/polyglot.git
 
-    - name: Build Polyglot from src
+    - name: Build Polyglot
       run: |
         cd polyglot/src
         make
 
     - name: Generate book.bin
       run: |
-        cd polyglot/src
-        ./polyglot make-book ../../../filtered_960_bots_2200plus.pgn ../../../book.bin 40 16
-        mv ../../../book.bin $GITHUB_WORKSPACE/
+        polyglot/src/polyglot make-book \
+          filtered_960_bots_2200plus.pgn \
+          book.bin \
+          40 16
 
     - name: Upload book.bin
       uses: actions/upload-artifact@v4
