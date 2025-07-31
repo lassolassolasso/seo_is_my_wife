@@ -45,6 +45,7 @@ jobs:
           echo "No changes in book."
         else
           git commit -m "Update Chess960 opening book"
-          git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
         fi
+
 
