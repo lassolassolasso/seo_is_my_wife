@@ -16,13 +16,17 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install python-chess
-      run: pip install chess
+    - name: Install dependencies
+      run: |
+        pip install chess requests
 
-    - name: Build .bin from PGN
+    - name: Fetch games and build PGN
+      run: python fetch_and_build.py
+
+    - name: Create Polyglot book
       run: python create_polyglot.py
 
-    - name: Move bin to engines/
+    - name: Move .bin to engines/
       run: |
         mkdir -p engines
         mv filtered_960_bots_2200plus.bin engines/
@@ -34,19 +38,12 @@ jobs:
         git config user.name "github-actions"
         git config user.email "actions@github.com"
 
-        # Temporarily stash any uncommitted changes (like PGN/bin)
-        git stash --include-untracked
-
-        # Safely pull latest changes from the branch
+        git stash --include-untracked || true
         git pull origin "${GITHUB_REF_NAME}" --rebase || true
-
-        # Restore stashed files
         git stash pop || true
 
-        # Stage only the .bin file
         git add engines/filtered_960_bots_2200plus.bin
 
-        # Commit and push if anything changed
         if git diff --cached --quiet; then
           echo "✅ No changes to commit."
         else
