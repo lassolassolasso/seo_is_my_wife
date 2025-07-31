@@ -1,47 +1,16 @@
-import chess.pgn
-import polyglot
-from polyglot import book
-import os
+import subprocess
 
 PGN_FILE = "filtered_960_bots_2200plus.pgn"
 BOOK_FILE = "book.bin"
-MAX_PLY = 20  # Edit as needed
+MOVE_COUNT = "40"
+PLY_DEPTH = "16"
 
-def create_book():
-    book_entries = []
+print(f"📘 Building book from {PGN_FILE}...")
 
-    with open(PGN_FILE, encoding="utf-8") as pgn:
-        game_count = 0
-        while True:
-            game = chess.pgn.read_game(pgn)
-            if game is None:
-                break
+# Build the book builder binary (only if not already built)
+subprocess.run(["g++", "book_make.cpp", "-o", "bookbuilder"], check=True)
 
-            if game.headers.get("Variant") != "Chess960":
-                continue
-            if "FEN" not in game.headers or "SetUp" not in game.headers:
-                continue
+# Run the binary to generate the book
+subprocess.run(["./bookbuilder", PGN_FILE, BOOK_FILE, MOVE_COUNT, PLY_DEPTH], check=True)
 
-            board = game.board()
-            game_count += 1
-
-            try:
-                for i, move in enumerate(game.mainline_moves()):
-                    if i >= MAX_PLY:
-                        break
-                    entry = book.Entry.from_board(board, move, weight=1, learn=0)
-                    book_entries.append(entry)
-                    board.push(move)
-            except Exception as e:
-                continue
-
-    if book_entries:
-        with open(BOOK_FILE, "wb") as f:
-            for entry in book_entries:
-                f.write(entry.encode())
-        print(f"✅ Saved {len(book_entries)} moves to book: {BOOK_FILE}")
-    else:
-        print("⚠️ No valid moves found. Book not created.")
-
-if __name__ == "__main__":
-    create_book()
+print(f"✅ Saved book to {BOOK_FILE}")
