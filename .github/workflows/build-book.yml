@@ -22,12 +22,19 @@ jobs:
     - name: Fetch games and build book
       run: python fetch_and_build.py
 
-    - name: Move book.bin to engines
-      run: |
-        mkdir -p engines
-        mv book.bin engines/filtered_960_bots_2200plus.bin
+    - name: Ensure engines folder exists
+      run: mkdir -p engines
 
-    - name: Upload as artifact
+    - name: Move book.bin if exists
+      run: |
+        if [ -f book.bin ]; then
+          mv book.bin engines/filtered_960_bots_2200plus.bin
+        else
+          echo "❌ book.bin not found. Skipping move."
+          exit 1
+        fi
+
+    - name: Upload book as artifact
       uses: actions/upload-artifact@v4
       with:
         name: polyglot-book
