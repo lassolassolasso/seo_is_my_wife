@@ -11,23 +11,22 @@ jobs:
     - name: Checkout your repo
       uses: actions/checkout@v3
 
-    - name: Install build tools and LevelDB
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential libleveldb-dev
+    - name: Install build tools
+      run: sudo apt-get update && sudo apt-get install -y build-essential
 
-    - name: Clone working Polyglot fork
-      run: |
-        git clone https://github.com/sshivaji/polyglot.git
+    - name: Clone working Polyglot repo
+      run: git clone https://github.com/ddugovic/polyglot.git
 
-    - name: Build Polyglot
+    - name: Build Polyglot from src
       run: |
         cd polyglot/src
         make
 
     - name: Generate book.bin
       run: |
-        ./polyglot/src/polyglot make-book filtered_960_bots_2200plus.pgn book.bin 40 16
+        cd polyglot/src
+        ./polyglot make-book ../../../filtered_960_bots_2200plus.pgn ../../../book.bin 40 16
+        mv ../../../book.bin $GITHUB_WORKSPACE/
 
     - name: Upload book.bin
       uses: actions/upload-artifact@v4
