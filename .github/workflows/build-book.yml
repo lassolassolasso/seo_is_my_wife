@@ -1,11 +1,6 @@
-name: Build Chess960 Polyglot Book
+name: Fetch & Build Chess960 Book
 
 on:
-  push:
-    paths:
-      - '**.pgn'
-      - 'create_polyglot.py'
-      - '.github/workflows/build-book.yml'
   workflow_dispatch:
 
 jobs:
@@ -13,23 +8,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 🧾 Checkout Repository
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    - name: 🐍 Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+    - uses: actions/setup-python@v5
+      with: python-version: '3.11'
 
-    - name: 📦 Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install chess
+    - name: Install Dependencies
+      run: pip install requests python-chess
 
-    - name: ⚙️ Run create_polyglot.py
-      run: python create_polyglot.py
+    - name: Fetch games & build book
+      run: python fetch_and_build.py
 
-    - name: 📁 Move book.bin to engines/
+    - name: Move book.bin to engines
       run: |
         mkdir -p engines
         mv book.bin engines/filtered_960_bots_2200plus.bin
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: polyglot-book
+        path: engines/filtered_960_bots_2200plus.bin
+
+    - name: Commit and push book.bin
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        git config user.name "github-actions"
+        git config user.email "actions@github.com"
+        git pull origin ${{ github.ref_name }} --rebase
+        git add engines/filtered_960_bots_2200plus.bin
+        if git diff --cached --quiet; then
+          echo "No changes in book"
+        else
+          git commit -m "Update Chess960 book"
+          git push https://${{ env.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
+        fi
