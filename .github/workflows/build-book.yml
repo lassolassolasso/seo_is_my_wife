@@ -29,7 +29,7 @@ jobs:
     - name: Move .bin to engines/
       run: |
         mkdir -p engines
-        mv filtered_960_bots_2200plus.bin engines/
+        mv book.bin engines/
 
     - name: Commit and push updated book
       env:
@@ -42,7 +42,7 @@ jobs:
         git pull origin "${GITHUB_REF_NAME}" --rebase || true
         git stash pop || true
 
-        git add engines/filtered_960_bots_2200plus.bin
+        git add engines/book.bin
 
         if git diff --cached --quiet; then
           echo "✅ No changes to commit."
