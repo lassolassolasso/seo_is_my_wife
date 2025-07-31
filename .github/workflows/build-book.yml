@@ -8,15 +8,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v5
-      with: python-version: '3.11'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
 
-    - name: Install Dependencies
+    - name: Install dependencies
       run: pip install requests python-chess
 
-    - name: Fetch games & build book
+    - name: Fetch games and build book
       run: python fetch_and_build.py
 
     - name: Move book.bin to engines
@@ -24,23 +27,22 @@ jobs:
         mkdir -p engines
         mv book.bin engines/filtered_960_bots_2200plus.bin
 
-    - name: Upload artifact
+    - name: Upload as artifact
       uses: actions/upload-artifact@v4
       with:
         name: polyglot-book
         path: engines/filtered_960_bots_2200plus.bin
 
-    - name: Commit and push book.bin
+    - name: Commit and push updated book
       env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config user.name "github-actions"
         git config user.email "actions@github.com"
-        git pull origin ${{ github.ref_name }} --rebase
+        git pull origin "${GITHUB_REF_NAME}" --rebase || true
         git add engines/filtered_960_bots_2200plus.bin
         if git diff --cached --quiet; then
-          echo "No changes in book"
+          echo "No changes to commit."
         else
-          git commit -m "Update Chess960 book"
-          git push https://${{ env.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
-        fi
+          git commit -m "Update Chess960 opening book"
+          git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }} HEAD
