@@ -1,43 +1,82 @@
-import requests, time, chess, chess.pgn, chess.polyglot, datetime
+import requests
+import json
+import chess.pgn
+from io import StringIO
 
-BOTS = ["SoggiestShrimp", "AttackKing_Bot", "PositionalAI", "mayhem23111", "InvinxibleFlxsh", "YoBot_v2", "VEER-OMEGA-BOT", "MaggiChess16", "NimsiluBot"]
-PGN_OUT = "filtered_960_bots_2200plus.pgn"
-BIN_OUT = "book.bin"
-
-# Lichess token if available to improve rate limits
-TOKEN = None
-HEADERS = {"Accept":"application/x-ndjson"}
-if TOKEN:
-    HEADERS["Authorization"] = f"Bearer {TOKEN}"
+# Bot usernames to include
+bots = [
+    "SoggiestShrimp",
+    "AttackKing_Bot",
+    "PositionalAI",
+    "mayhem23111",
+    "InvinxibleFlxsh",
+    "YoBot_v2",
+    "VEER-OMEGA-BOT",
+    "MaggiChess16",
+    "NimsiluBot"
+]
 
 def fetch():
-    url = "https://lichess.org/api/games/user/{}"
-    params = {"perfType": "chess960", "rated": "true", "moves":"true", "opening":"true"}
-    games = []
-    for bot in BOTS:
-        print("Fetching games for", bot)
-        resp = requests.get(url.format(bot), headers=HEADERS, params=params, stream=True)
-        if resp.status_code != 200:
-            print("Failed for", bot, resp.status_code)
+    headers = {
+        "Accept": "application/x-ndjson"
+    }
+
+    out_pgns = []
+
+    for bot in bots:
+        print(f"Fetching games for {bot}")
+        url = f"https://lichess.org/api/games/user/{bot}"
+        params = {
+            "max": 100,
+            "perfType": "chess960",
+            "rated": "true",
+            "analysed": "false",
+            "pgnInJson": "true",
+            "clocks": "false",
+            "opening": "false",
+            "moves": "true"
+        }
+
+        response = requests.get(url, headers=headers, params=params, stream=True)
+
+        if response.status_code != 200:
+            print(f"Failed to fetch games for {bot}")
             continue
-        for line in resp.iter_lines():
-            if not line: continue
-            g = requests.utils.json.loads(line)
-            pw = g.get("players", {})
-            w = pw.get("white",{}); b = pw.get("black",{})
-            if (w.get("user",{}).get("title")=="BOT" and b.get("user",{}).get("title")=="BOT" and
-                w.get("rating",0)>=2200 and b.get("rating",0)>=2200):
-                games.append(g.get("pgn",""))
-        time.sleep(2)
-    with open(PGN_OUT,"w",encoding="utf-8") as f:
-        for p in games: f.write(p+"\n\n")
-    print("Saved games:", len(games))
 
-# (Insert your corrected create_polyglot.py logic here...)
-from create_polyglot import build_book_file
-def build():
-    build_book_file(PGN_OUT, BIN_OUT)
+        for line in response.iter_lines():
+            if not line:
+                continue
+            g = json.loads(line)
 
-if __name__=="__main__":
+            # Filter: must be against another bot, both 2200+
+            white = g.get("players", {}).get("white", {})
+            black = g.get("players", {}).get("black", {})
+            white_name = white.get("user", {}).get("name", "")
+            black_name = black.get("user", {}).get("name", "")
+            white_title = white.get("user", {}).get("title", "")
+            black_title = black.get("user", {}).get("title", "")
+            white_rating = white.get("rating", 0)
+            black_rating = black.get("rating", 0)
+
+            if white_name not in bots or black_name not in bots:
+                continue
+
+            if white_rating < 2200 or black_rating < 2200:
+                continue
+
+            if g.get("variant") != "chess960":
+                continue
+
+            pgn = g.get("pgn", "")
+            if pgn:
+                out_pgns.append(pgn.strip())
+
+    # Save filtered PGNs
+    with open("filtered_960_bots_2200plus.pgn", "w", encoding="utf-8") as f:
+        for pgn in out_pgns:
+            f.write(pgn + "\n\n")
+
+    print(f"✅ Saved {len(out_pgns)} games to filtered_960_bots_2200plus.pgn")
+
+if __name__ == "__main__":
     fetch()
-    build()
