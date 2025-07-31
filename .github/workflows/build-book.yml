@@ -40,8 +40,9 @@ jobs:
         git add engines/book.bin filtered_960_bots_2200plus.pgn
         git pull --rebase
         if git diff --cached --quiet; then
-          echo "No changes to commit."
+          echo "No changes in book."
         else
           git commit -m "Update Chess960 opening book"
-          git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
+          git push
         fi
+
