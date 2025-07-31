@@ -48,5 +48,6 @@ jobs:
           echo "✅ No changes to commit."
         else
           git commit -m "Update Chess960 opening book"
-          git push 
+          git push
         fi
+
