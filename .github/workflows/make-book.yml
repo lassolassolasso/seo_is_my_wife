@@ -14,18 +14,18 @@ jobs:
     - name: Install build tools
       run: sudo apt-get update && sudo apt-get install -y build-essential
 
-    - name: Clone Carek Polyglot repo
+    - name: Clone working Polyglot fork
       run: |
-        git clone https://github.com/carek14/polyglot.git
-        cd polyglot
+        git clone https://github.com/sshivaji/polyglot.git
+
+    - name: Build Polyglot
+      run: |
+        cd polyglot/src
         make
 
     - name: Generate book.bin
       run: |
-        ./polyglot/polyglot make-book \
-          --pgn filtered_960_bots_2200plus.pgn \
-          --bin book.bin \
-          --max-ply 40
+        ./polyglot/src/polyglot make-book filtered_960_bots_2200plus.pgn book.bin 40 16
 
     - name: Upload book.bin
       uses: actions/upload-artifact@v4
