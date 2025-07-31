@@ -11,10 +11,10 @@ jobs:
     - name: Checkout your repo
       uses: actions/checkout@v3
 
-    - name: Install build tools
+    - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libleveldb-dev
+        sudo apt-get install -y build-essential autoconf automake libleveldb-dev
 
     - name: Clone working Polyglot repo
       run: |
@@ -22,23 +22,15 @@ jobs:
         cd polyglot/src
         make
 
-    - name: Build book.bin
+    - name: Generate book.bin
       run: |
-        ./polyglot/src/make-book filtered_960_bots_2200plus.pgn book.bin 40 16
-        mkdir -p engines
-        mv book.bin engines/book.bin
+        ./polyglot/src/bookbuilder filtered_960_bots_2200plus.pgn book.bin 40 16
 
     - name: Commit and push book.bin to engines/
       run: |
-        git config user.name "github-actions"
-        git config user.email "github-actions@github.com"
-
-        git pull origin ${{ github.ref_name }}
+        cp book.bin engines/
+        git config --global user.name "github-actions"
+        git config --global user.email "actions@github.com"
         git add engines/book.bin
-
-        if git diff --cached --quiet; then
-          echo "No changes to commit."
-        else
-          git commit -m "Add generated book.bin to engines folder"
-          git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
-        fi
+        git commit -m "Add built book.bin"
+        git push
