@@ -114,6 +114,7 @@ class Game_Information:
     variant: Variant
     variant_name: str
     initial_fen: str
+    fen_str: str = ""
     state: dict[str, Any]
 
     @classmethod
@@ -142,7 +143,7 @@ class Game_Information:
 
         return cls(id_, white_title, white_name, white_rating, white_ai_level, white_provisional, black_title,
                    black_name, black_rating, black_ai_level, black_provisional, initial_time_ms, increment_ms, speed,
-                   rated, variant, variant_name, initial_fen, state)
+                   rated, variant, variant_name, initial_fen, initial_fen, state)
 
     @property
     def id_str(self) -> str:
