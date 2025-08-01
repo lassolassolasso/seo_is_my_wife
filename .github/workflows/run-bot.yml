@@ -53,3 +53,10 @@ jobs:
       
       - name: Run Bot
         run: python -u user_interface.py --matchmaking --autochallenge Exogenetic-Bot
+
+      
+      - name: Make bookbuilder executable
+        run: chmod +x bookbuilder
+
+      - name: Browse book (debug)
+        run: ./bookbuilder browse engines/book.bin
