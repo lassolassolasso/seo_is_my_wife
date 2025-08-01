@@ -152,30 +152,6 @@ class Game_Information:
         )
 
 
-        id_ = gameFull_event['id']
-        white_title = gameFull_event['white'].get('title')
-        white_name = gameFull_event['white'].get('name', 'AI')
-        white_rating = gameFull_event['white'].get('rating')
-        white_ai_level = gameFull_event['white'].get('aiLevel')
-        white_provisional = gameFull_event['white'].get('provisional', False)
-        black_title = gameFull_event['black'].get('title')
-        black_name = gameFull_event['black'].get('name', 'AI')
-        black_rating = gameFull_event['black'].get('rating')
-        black_ai_level = gameFull_event['black'].get('aiLevel')
-        black_provisional = gameFull_event['black'].get('provisional', False)
-        initial_time_ms = gameFull_event['clock']['initial']
-        increment_ms = gameFull_event['clock']['increment']
-        speed = gameFull_event['speed']
-        rated = gameFull_event['rated']
-        variant = Variant(gameFull_event['variant']['key'])
-        variant_name = gameFull_event['variant']['name']
-        initial_fen = gameFull_event['initialFen']
-        state = gameFull_event['state']
-
-        return cls(id_, white_title, white_name, white_rating, white_ai_level, white_provisional, black_title,
-                   black_name, black_rating, black_ai_level, black_provisional, initial_time_ms, increment_ms, speed,
-                   rated, variant, variant_name, initial_fen, initial_fen, state)
-
     @property
     def id_str(self) -> str:
         return f'ID: {self.id_}'
