@@ -31,7 +31,7 @@ def fetch():
         print(f"🔍 Fetching games for {bot}")
         url = f"https://lichess.org/api/games/user/{bot}"
         params = {
-            "max": 100,
+            "max": 3000,
             "perfType": "chess960",
             "rated": "true",
             "analysed": "false",
