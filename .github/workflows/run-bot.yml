@@ -42,21 +42,10 @@ jobs:
           mv engines/stockfish* engines/stockfish
           chmod +x engines/stockfish
 
-      - name: Download Stockfish 17.1 for Chess960
-        run: |
-          curl -L -o engines/newsf https://github.com/MaggiCoder16/maggibot_backup/releases/download/sf17/newsf
-          chmod +x engines/newsf
-
       - name: Make Fairy Stockfish Executable
         run: |
           chmod +x engines/fairy-stockfish
       
       - name: Run Bot
-        run: python -u user_interface.py --matchmaking --autochallenge Exogenetic-Bot
+        run: python -u user_interface.py --matchmaking 
 
-      
-      - name: Make bookbuilder executable
-        run: chmod +x bookbuilder
-
-      - name: Browse book (debug)
-        run: ./bookbuilder browse engines/book.bin
