@@ -91,8 +91,17 @@ class Game:
 
     def _print_game_information(self, info: Game_Information) -> None:
         opponents_str = f'{info.white_str}   -   {info.black_str}'
-        message = (5 * ' ').join([info.id_str, opponents_str, info.tc_str,
-                                  info.rated_str, info.variant_str])
+        message = (5 * ' ').join([
+            info.id_str,
+            opponents_str,
+            info.tc_str,
+            info.rated_str,
+            info.variant_str
+        ])
+        if "chess960" in info.variant_str.lower():
+            message += f"     FEN: {info.fen_str}"
+        print(f"    {message}")
+
 
         print(f'\n{message}\n{128 * "‾"}')
 
