@@ -129,7 +129,7 @@ class Game_Information:
             state = raw_state
 
         return cls(
-            id_=gameFull_event['game']['id'],
+            id_=gameFull_event['id'],
             white_title=gameFull_event['white'].get('title'),
             white_name=gameFull_event['white']['name'],
             white_rating=gameFull_event['white'].get('rating'),
