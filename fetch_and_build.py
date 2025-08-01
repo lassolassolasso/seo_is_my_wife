@@ -13,7 +13,13 @@ bots = [
     "YoBot_v2",
     "VEER-OMEGA-BOT",
     "MaggiChess16",
-    "NimsiluBot"
+    "NimsiluBot",
+    "pangubot",
+    "Loss-Not-Defined",
+    "Alexnajax_Fan",
+    "strain-on-veins",
+    "BOTTYBADDY11",
+    "ChampionKitten",
 ]
 
 def fetch():
@@ -61,7 +67,7 @@ def fetch():
             if white_name not in bots or black_name not in bots:
                 continue
 
-            if white_rating < 2200 or black_rating < 2200:
+            if white_rating < 2350 or black_rating < 2350:
                 continue
 
             if g.get("variant") != "chess960":
