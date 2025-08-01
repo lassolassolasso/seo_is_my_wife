@@ -114,8 +114,8 @@ class Game_Information:
     variant: Variant
     variant_name: str
     initial_fen: str
-    fen_str: str = ""
     state: dict[str, Any]
+    fen_str: str = ""
 
     @classmethod
     def from_gameFull_event(cls, gameFull_event: dict[str, Any]) -> 'Game_Information':
