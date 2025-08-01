@@ -37,6 +37,5 @@ jobs:
         name: chess960-opening-book
         path: engines/book.bin
 
-    - name: Browse book (debug)
-      run: ./bookbuilder browse book.bin
+
 
