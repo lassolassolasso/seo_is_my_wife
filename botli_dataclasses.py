@@ -152,6 +152,7 @@ class Game_Information:
         )
 
 
+
     @property
     def id_str(self) -> str:
         return f'ID: {self.id_}'
