@@ -144,7 +144,7 @@ class Game_Information:
             increment_ms=gameFull_event['clock']['increment'],
             speed=gameFull_event['speed'],
             rated=gameFull_event['rated'],
-            variant=Variant.from_str(gameFull_event['variant']['key']),
+            variant = Variant(gameFull_event['variant']['key'])
             variant_name=gameFull_event['variant']['name'],
             initial_fen=gameFull_event.get('initialFen', ''),
             fen_str=gameFull_event.get('initialFen', ''),
