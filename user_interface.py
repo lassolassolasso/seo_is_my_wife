@@ -48,6 +48,7 @@ class User_Interface:
                    tournament_team: str | None,
                    tournament_password: str | None,
                    allow_upgrade: bool) -> None:
+                   autochallenge: str | None = None) -> None:
         self.config = Config.from_yaml(config_path)
 
         async with API(self.config) as self.api:
@@ -63,7 +64,7 @@ class User_Interface:
             self.game_manager = Game_Manager(self.api, self.config, username)
 
             # ✅ Auto-challenge logic (only one opponent)
-            if tournament_id is None and not start_matchmaking and args.autochallenge:
+            if tournament_id is None and not start_matchmaking and autochallenge:
                 opponent = args.autochallenge
                 print(f'Auto-challenging {opponent} 20 times (10 white, 10 black)...')
                 challenges = []
@@ -380,4 +381,5 @@ if __name__ == '__main__':
                                       args.team,
                                       args.password,
                                       args.upgrade),
+                                      args.autochallenge),
                 debug=args.debug)
