@@ -80,6 +80,7 @@ opening_books:
       names:                              # List of names of books to use if there is no specific book for the time control, white, black or chess960.
         - DefaultBook
         - BackupBook
+        - special
 
     chess960:
       selection: best_move          # Move selection is one of "weighted_random", "uniform_random" or "best_move".
@@ -220,3 +221,4 @@ books:
   BackupBook: "./engines/Book3.bin"
   blackbook: "./engines/blackbook.bin"
   book: "./engines/book.bin"
+  special: "./engines/special.bin"
