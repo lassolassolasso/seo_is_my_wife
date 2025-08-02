@@ -1,6 +1,7 @@
 import requests
 import json
 import collections
+import time
 
 # Bot usernames to include
 bots = [
@@ -53,6 +54,7 @@ def fetch():
 
         if response.status_code != 200:
             print(f"❌ Failed to fetch games for {bot}, status {response.status_code}")
+            time.sleep(3)
             continue
 
         for line in response.iter_lines():
