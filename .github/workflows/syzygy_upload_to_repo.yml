@@ -22,39 +22,58 @@ jobs:
     - name: Create engines/syzygy directory
       run: mkdir -p engines/syzygy
 
-    - name: Download .rtbw files
+    - name: Download .rtbw files 
       run: |
         cd engines/syzygy
-        for file in $(curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/ | grep -Eo 'href="[^"]+\.rtbw"' | cut -d'"' -f2); do
-          echo "Downloading $file"
-          retry=0
-          until [ $retry -ge 3 ]; do
-            wget -O "$file" "https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/$file" && break
-            retry=$((retry+1))
-            echo "Retry $retry for $file"
-            sleep 2
-          done
-          if ! file "$file" | grep -q "data"; then
-            echo "Corrupt download detected for $file"
-            exit 1
-          fi
-        done
-
-    - name: Download .rtbz files
-      run: |
-        curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/ \
-          | grep -Eo 'href="[^"]+\.rtbz"' \
-          | cut -d'"' -f2 \
-          | while read -r file; do
-              wget -q https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/$file -P engines/syzygy
+        curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/ \
+        | grep -Eo 'href="[^"]+\.rtbw"' | cut -d'"' -f2 \
+        | while read -r file; do
+            echo "Downloading $file"
+            success=false
+            for attempt in 1 2 3; do
+              wget -q "https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/$file" -O "$file"
+              if file "$file" | grep -q "data"; then
+                success=true
+                break
+              else
+                echo "Attempt $attempt failed: $file may be corrupt."
+              fi
             done
+            if [ "$success" = false ]; then
+              echo "Skipping corrupt file: $file"
+              rm -f "$file"
+            fi
+          done
 
-    - name: Git LFS track files
+    - name: Download .rtbz files 
+      run: |
+        cd engines/syzygy
+        curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/ \
+        | grep -Eo 'href="[^"]+\.rtbz"' | cut -d'"' -f2 \
+        | while read -r file; do
+            echo "Downloading $file"
+            success=false
+            for attempt in 1 2 3; do
+              wget -q "https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/$file" -O "$file"
+              if file "$file" | grep -q "data"; then
+                success=true
+                break
+              else
+                echo "Attempt $attempt failed: $file may be corrupt."
+              fi
+            done
+            if [ "$success" = false ]; then
+              echo "Skipping corrupt file: $file"
+              rm -f "$file"
+            fi
+          done
+
+    - name: Git LFS track Syzygy files
       run: |
         git lfs track "engines/syzygy/*.rtbw"
         git lfs track "engines/syzygy/*.rtbz"
 
-    - name: Commit and push tablebases
+    - name: Commit and push to repo
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
