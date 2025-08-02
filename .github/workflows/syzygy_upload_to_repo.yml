@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout with LFS
+      - name: Checkout with Git LFS support
         uses: actions/checkout@v4
         with:
           lfs: true
@@ -16,7 +16,10 @@ jobs:
       - name: Install tools
         run: sudo apt update && sudo apt install -y jq coreutils
 
-      - name: List Syzygy files from upstream
+      - name: Create engines/syzygy directory
+        run: mkdir -p engines/syzygy
+
+      - name: Get file list from source repo
         id: list_files
         run: |
           echo "files<<EOF" >> "$GITHUB_OUTPUT"
@@ -25,37 +28,37 @@ jobs:
             >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
-      - name: Download files into engines/syzygy
+      - name: Download Syzygy files to engines/syzygy/
         run: |
           base_url="https://raw.githubusercontent.com/suprateem-ux/suprabot/main/engines/syzygy"
-          mkdir -p engines/syzygy
           while read -r file; do
             curl -sSL "$base_url/$file" -o "engines/syzygy/$file"
           done <<< "${{ steps.list_files.outputs.files }}"
 
-      - name: Verify & Fix corrupted files using checksum
+      - name: Verify and fix corrupted files
         run: |
           cd engines/syzygy
+          base_url="https://raw.githubusercontent.com/suprateem-ux/suprabot/main/engines/syzygy"
           if [ -f checksum.md5 ]; then
-            echo "Verifying..."
-            bad_files=$(md5sum -c checksum.md5 | grep -v OK | cut -d: -f1)
+            echo "Checking checksums..."
+            bad_files=$(md5sum -c checksum.md5 | grep -v OK | cut -d: -f1 || true)
             for file in $bad_files; do
               echo "Redownloading corrupted file: $file"
               curl -sSL "$base_url/$file" -o "$file"
             done
           else
-            echo "No checksum.md5 file found for verification."
+            echo "checksum.md5 not found — skipping verification"
           fi
 
-      - name: Track tablebases with Git LFS
+      - name: Track Syzygy files with Git LFS
         run: |
           git lfs track "engines/syzygy/*.rtbw"
           git lfs track "engines/syzygy/*.rtbz"
 
-      - name: Commit and push restored files
+      - name: Commit and push Syzygy directory
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add engines/syzygy .gitattributes
-          git commit -m "Restore and verify Syzygy tablebases" || echo "Nothing to commit"
+          git commit -m "Add verified Syzygy tablebase files" || echo "Nothing to commit"
           git push
