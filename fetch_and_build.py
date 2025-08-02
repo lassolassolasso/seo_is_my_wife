@@ -25,7 +25,8 @@ bots = [
     "ToromBot",
     "Ayaangamerzbot",
     "Lili-ai",
-    "BOT_DeChess"
+    "BOT_DeChess",
+    "Moment-That-Inspires"
 ]
 
 def fetch():
