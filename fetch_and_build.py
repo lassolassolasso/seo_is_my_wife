@@ -4,9 +4,7 @@ import collections
 
 # Bot usernames to include
 bots = [
-    "SoggiestShrimp",
     "AttackKing_Bot",
-    "PositionalAI",
     "mayhem23111",
     "InvinxibleFlxsh",
     "YoBot_v2",
@@ -15,14 +13,18 @@ bots = [
     "NimsiluBot",
     "pangubot",
     "Loss-Not-Defined",
-    "Alexnajax_Fan",
     "strain-on-veins",
     "BOTTYBADDY11",
-    "ChampionKitten",
     "LeelaMultiPoss",
-    "ToromBot",
     "LeelaChessTest",
-    "Lili-ai"
+    "BOT_Stockfish13",
+    "Endogenetic-Bot",
+    "Sooraj_Kumar_P_S",
+    "Classic_BOT-v2",
+    "Exogenetic-Bot",
+    "NNUE_Drift",
+    "caissa-x",
+    
 ]
 
 def fetch():
@@ -34,7 +36,7 @@ def fetch():
         url = f"https://lichess.org/api/games/user/{bot}"
         params = {
             "max": 3000,
-            "perfType": "chess960",
+            "perfType": "standard",
             "rated": "true",
             "analysed": "false",
             "pgnInJson": "true",
@@ -67,9 +69,11 @@ def fetch():
 
             if white_name not in bots or black_name not in bots:
                 continue
-            if white_rating < 2350 or black_rating < 2350:
+            if white_rating < 3000 or black_rating < 3000:
                 continue
-            if g.get("variant") != "chess960":
+            if g.get("variant") != "standard":
+                continue
+            if g.get("status") != "draw":
                 continue
 
             fen = g.get("initialFen", "")
