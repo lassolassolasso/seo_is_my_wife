@@ -1,0 +1,39 @@
+name: Upload Syzygy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y git-lfs
+          git lfs install
+
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          mkdir -p engines/syzygy
+          cd engines/syzygy
+
+          wget -nv -r -np -nH --cut-dirs=3 --accept "*.rtbw" http://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/
+          wget -nv -r -np -nH --cut-dirs=3 --accept "*.rtbz" http://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/
+
+          cd ../../
+
+          git lfs track "engines/syzygy/*.rtbw"
+          git lfs track "engines/syzygy/*.rtbz"
+          echo "engines/syzygy/*.rtbw" >> .gitattributes
+          echo "engines/syzygy/*.rtbz" >> .gitattributes
+
+          git add engines/syzygy .gitattributes
+          git commit -m "Add Syzygy 3-4-5 WDL + DTZ"
+          git push
