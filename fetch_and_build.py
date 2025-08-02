@@ -85,7 +85,7 @@ def fetch():
             pgn = g.get("pgn", "")
 
             # Store up to 3 PGNs per FEN
-            if fen and pgn and len(fen_to_pgns[fen]) < 3:
+            if fen and pgn and len(fen_to_pgns[fen]) < 7:
                 fen_to_pgns[fen].append(pgn.strip())
 
     # Save all collected PGNs
