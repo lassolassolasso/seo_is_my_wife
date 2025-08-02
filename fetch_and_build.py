@@ -4,23 +4,36 @@ import collections
 import time
 import os
 
-# List of bot usernames
-bots = [
-    "AttackKing_Bot", "mayhem23111", "InvinxibleFlxsh", "YoBot_v2", "VEER-OMEGA-BOT",
-    "MaggiChess16", "NimsiluBot", "pangubot", "Loss-Not-Defined", "strain-on-veins",
-    "BOTTYBADDY11", "LeelaMultiPoss", "LeelaChessTest", "BOT_Stockfish13",
-    "Endogenetic-Bot", "Sooraj_Kumar_P_S", "Classic_BOT-v2", "Exogenetic-Bot",
-    "NNUE_Drift", "caissa-x",
-]
+# Token usage (optional)
+TOKEN = os.getenv("LICHESS_TOKEN")  # Set this as an environment variable or hardcode if needed
 
-token = os.getenv("LICHESS_TOKEN")
+# Bot usernames to include
+bots = [
+    "SoggiestShrimp",
+    "AttackKing_Bot",
+    "PositionalAI",
+    "mayhem23111",
+    "InvinxibleFlxsh",
+    "YoBot_v2",
+    "VEER-OMEGA-BOT",
+    "MaggiChess16",
+    "NimsiluBot",
+    "pangubot",
+    "Loss-Not-Defined",
+    "Alexnajax_Fan",
+    "strain-on-veins",
+    "BOTTYBADDY11",
+    "ChampionKitten",
+    "LeelaMultiPoss",
+    "ToromBot",
+]
 
 def fetch():
     headers = {
         "Accept": "application/x-ndjson"
     }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
+    if TOKEN:
+        headers["Authorization"] = f"Bearer {TOKEN}"
 
     fen_to_pgns = collections.defaultdict(list)
 
@@ -28,8 +41,8 @@ def fetch():
         print(f"🔍 Fetching games for {bot}")
         url = f"https://lichess.org/api/games/user/{bot}"
         params = {
-            "max": 500,
-            "perfType": "standard",
+            "max": 3000,
+            "perfType": "chess960",
             "rated": "true",
             "analysed": "false",
             "pgnInJson": "true",
@@ -63,19 +76,19 @@ def fetch():
 
             if white_name not in bots or black_name not in bots:
                 continue
-            if white_rating < 3000 or black_rating < 3000:
+            if white_rating < 2200 or black_rating < 2200:
                 continue
-            if g.get("variant") != "standard":
-                continue
-            if g.get("status") != "draw":
+            if g.get("variant") != "chess960":
                 continue
 
             fen = g.get("initialFen", "")
             pgn = g.get("pgn", "")
 
+            # Store up to 3 PGNs per FEN
             if fen and pgn and len(fen_to_pgns[fen]) < 3:
                 fen_to_pgns[fen].append(pgn.strip())
 
+    # Save all collected PGNs
     total_games = 0
     with open("filtered_960_bots_2200plus.pgn", "w", encoding="utf-8") as f:
         for pgns in fen_to_pgns.values():
