@@ -47,7 +47,7 @@ class User_Interface:
                    tournament_id: str | None,
                    tournament_team: str | None,
                    tournament_password: str | None,
-                   allow_upgrade: bool) -> None:
+                   allow_upgrade: bool,
                    autochallenge: str | None = None) -> None:
         self.config = Config.from_yaml(config_path)
 
@@ -375,11 +375,16 @@ if __name__ == '__main__':
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    asyncio.run(User_Interface().main(args.config,
-                                      args.matchmaking,
-                                      args.tournament,
-                                      args.team,
-                                      args.password,
-                                      args.upgrade),
-                                      args.autochallenge),
-                debug=args.debug)
+    asyncio.run(
+        User_Interface().main(
+            args.config,
+            args.matchmaking,
+            args.tournament,
+            args.team,
+            args.password,
+            args.upgrade,
+            args.autochallenge
+        ),
+        debug=args.debug
+    )
+
