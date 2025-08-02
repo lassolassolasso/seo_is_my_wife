@@ -1,24 +1,23 @@
-name: Download Syzygy Tablebases
+name: Restore Syzygy Files
 
 on:
   workflow_dispatch:
 
 jobs:
-  sync_syzygy:
+  restore_syzygy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout with LFS
+        uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Install jq
-        run: sudo apt update && sudo apt install -y jq
+      - name: Install tools
+        run: sudo apt update && sudo apt install -y jq coreutils
 
-      - name: Create syzygy directory
-        run: mkdir -p engines/syzygy
-
-      - name: Fetch file list from suprabot repo
-        id: files
+      - name: List Syzygy files from upstream
+        id: list_files
         run: |
           echo "files<<EOF" >> "$GITHUB_OUTPUT"
           curl -s https://api.github.com/repos/suprateem-ux/suprabot/contents/engines/syzygy \
@@ -26,24 +25,37 @@ jobs:
             >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
-      - name: Download each file
+      - name: Download files into engines/syzygy
         run: |
-          base="https://raw.githubusercontent.com/suprateem-ux/suprabot/main/engines/syzygy"
+          base_url="https://raw.githubusercontent.com/suprateem-ux/suprabot/main/engines/syzygy"
           mkdir -p engines/syzygy
-          while read -r fname; do
-            echo "Downloading $fname"
-            curl -sSL "$base/$fname" -o "engines/syzygy/$fname"
-          done <<< "${{ steps.files.outputs.files }}"
+          while read -r file; do
+            curl -sSL "$base_url/$file" -o "engines/syzygy/$file"
+          done <<< "${{ steps.list_files.outputs.files }}"
 
-      - name: Track with Git LFS
+      - name: Verify & Fix corrupted files using checksum
+        run: |
+          cd engines/syzygy
+          if [ -f checksum.md5 ]; then
+            echo "Verifying..."
+            bad_files=$(md5sum -c checksum.md5 | grep -v OK | cut -d: -f1)
+            for file in $bad_files; do
+              echo "Redownloading corrupted file: $file"
+              curl -sSL "$base_url/$file" -o "$file"
+            done
+          else
+            echo "No checksum.md5 file found for verification."
+          fi
+
+      - name: Track tablebases with Git LFS
         run: |
           git lfs track "engines/syzygy/*.rtbw"
           git lfs track "engines/syzygy/*.rtbz"
 
-      - name: Commit and push
+      - name: Commit and push restored files
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add engines/syzygy .gitattributes
-          git commit -m "Sync Suprabot Syzygy tablebases" || echo "Nothing to commit"
+          git commit -m "Restore and verify Syzygy tablebases" || echo "Nothing to commit"
           git push
