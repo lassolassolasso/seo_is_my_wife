@@ -1,39 +1,46 @@
-name: Upload Syzygy
+name: Upload Syzygy Tablebases
 
 on:
   workflow_dispatch:
 
 jobs:
-  upload:
+  syzygy-upload:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           lfs: true
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: |
+      - name: Install Git LFS
+        run: |
           sudo apt-get update
-          sudo apt-get install -y git-lfs
+          sudo apt-get install git-lfs
           git lfs install
 
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-
+      - name: Create syzygy folder and download WDL & DTZ files
+        run: |
           mkdir -p engines/syzygy
           cd engines/syzygy
+          wget https://tablebase.lichess.ovh/tables/3-4-5-wdl/KQvK.rtbw
+          wget https://tablebase.lichess.ovh/tables/3-4-5-wdl/KRvKN.rtbw
+          wget https://tablebase.lichess.ovh/tables/3-4-5-wdl/KQvKP.rtbw
+          wget https://tablebase.lichess.ovh/tables/3-4-5-dtz/KQvK.rtbz
+          wget https://tablebase.lichess.ovh/tables/3-4-5-dtz/KRvKN.rtbz
+          wget https://tablebase.lichess.ovh/tables/3-4-5-dtz/KQvKP.rtbz
 
-          wget -nv -r -np -nH --cut-dirs=3 --accept "*.rtbw" http://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/
-          wget -nv -r -np -nH --cut-dirs=3 --accept "*.rtbz" http://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/
-
-          cd ../../
-
+      - name: Track with Git LFS
+        run: |
           git lfs track "engines/syzygy/*.rtbw"
           git lfs track "engines/syzygy/*.rtbz"
-          echo "engines/syzygy/*.rtbw" >> .gitattributes
-          echo "engines/syzygy/*.rtbz" >> .gitattributes
 
-          git add engines/syzygy .gitattributes
-          git commit -m "Add Syzygy 3-4-5 WDL + DTZ"
-          git push
+      - name: Commit and push
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .gitattributes
+          git add engines/syzygy
+          git commit -m "Add Syzygy WDL and DTZ files"
+          git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git HEAD:main
