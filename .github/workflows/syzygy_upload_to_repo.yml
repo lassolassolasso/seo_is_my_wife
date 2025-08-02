@@ -6,7 +6,6 @@ on:
 jobs:
   upload:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
         with:
@@ -20,18 +19,19 @@ jobs:
 
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-
           mkdir -p engines/syzygy
           cd engines/syzygy
 
-          wget -nv -r -np -nH --cut-dirs=3 --accept "*.rtbw" http://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/
-          wget -nv -r -np -nH --cut-dirs=3 --accept "*.rtbz" http://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/
+          wget -nv https://tablebase.lichess.ovh/tables/3-4-5-wdl/KQvK.rtbw
+          wget -nv https://tablebase.lichess.ovh/tables/3-4-5-wdl/KQvKP.rtbw
+
+          wget -nv https://tablebase.lichess.ovh/tables/3-4-5-dtz/KQvK.rtbz
+          wget -nv https://tablebase.lichess.ovh/tables/3-4-5-dtz/KQvKP.rtbz
 
           cd ../../
 
           git lfs track "engines/syzygy/*.rtbw"
           git lfs track "engines/syzygy/*.rtbz"
-
           git add engines/syzygy .gitattributes
-          git commit -m "Add Syzygy 3-4-5 WDL + DTZ"
+          git commit -m "Add Syzygy WDL & DTZ files"
           git push
