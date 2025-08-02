@@ -1,4 +1,4 @@
-name: Upload Syzygy
+name: Upload Syzygy Tablebases
 
 on:
   workflow_dispatch:
@@ -8,32 +8,47 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
         with:
           lfs: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: |
+      - name: Install Git LFS
+        run: |
           sudo apt-get update
           sudo apt-get install -y git-lfs
           git lfs install
 
+      - name: Configure Git identity
+        run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-          mkdir -p engines/syzygy
-          cd engines/syzygy
+      - name: Create engines/syzygy directory
+        run: mkdir -p engines/syzygy
 
-          # Download all WDL .rtbw files
-          wget -r -l1 -nd -np -A "*.rtbw" https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/
+      - name: Download WDL (.rtbw) files
+        run: |
+          wget -r -np -nH --cut-dirs=3 --accept "*.rtbw" \
+            https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/ \
+            -P engines/syzygy/
 
-          # Download all DTZ .rtbz files
-          wget -r -l1 -nd -np -A "*.rtbz" https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/
+      - name: Download DTZ (.rtbz) files
+        run: |
+          wget -r -np -nH --cut-dirs=3 --accept "*.rtbz" \
+            https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/ \
+            -P engines/syzygy/
 
-          cd ../../
-
+      - name: Track files with Git LFS
+        run: |
           git lfs track "engines/syzygy/*.rtbw"
           git lfs track "engines/syzygy/*.rtbz"
-          git add engines/syzygy .gitattributes
+          echo "engines/syzygy/*.rtbw" >> .gitattributes
+          echo "engines/syzygy/*.rtbz" >> .gitattributes
 
-          git diff --cached --quiet || (git commit -m "Add full Syzygy 3-4-5 WDL + DTZ" && git push)
+      - name: Commit and push
+        run: |
+          git add engines/syzygy .gitattributes
+          git commit -m "Add Syzygy 3-4-5 WDL and DTZ tablebases"
+          git push || echo "Nothing to push"
