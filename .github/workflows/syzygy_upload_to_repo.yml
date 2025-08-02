@@ -24,12 +24,21 @@ jobs:
 
     - name: Download .rtbw files
       run: |
-        curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/ \
-          | grep -Eo 'href="[^"]+\.rtbw"' \
-          | cut -d'"' -f2 \
-          | while read -r file; do
-              wget -q https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/$file -P engines/syzygy
-            done
+        cd engines/syzygy
+        for file in $(curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/ | grep -Eo 'href="[^"]+\.rtbw"' | cut -d'"' -f2); do
+          echo "Downloading $file"
+          retry=0
+          until [ $retry -ge 3 ]; do
+            wget -O "$file" "https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/$file" && break
+            retry=$((retry+1))
+            echo "Retry $retry for $file"
+            sleep 2
+          done
+          if ! file "$file" | grep -q "data"; then
+            echo "Corrupt download detected for $file"
+            exit 1
+          fi
+        done
 
     - name: Download .rtbz files
       run: |
