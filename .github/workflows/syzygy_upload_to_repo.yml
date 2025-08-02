@@ -31,8 +31,6 @@ jobs:
 
           git lfs track "engines/syzygy/*.rtbw"
           git lfs track "engines/syzygy/*.rtbz"
-          echo "engines/syzygy/*.rtbw" >> .gitattributes
-          echo "engines/syzygy/*.rtbz" >> .gitattributes
 
           git add engines/syzygy .gitattributes
           git commit -m "Add Syzygy 3-4-5 WDL + DTZ"
