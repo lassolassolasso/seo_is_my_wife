@@ -4,81 +4,46 @@ on:
   workflow_dispatch:
 
 jobs:
-  download_syzygy:
+  sync_syzygy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        lfs: true
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
 
-    - name: Install Git LFS
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git-lfs
-        git lfs install
+      - name: Install jq
+        run: sudo apt update && sudo apt install -y jq
 
-    - name: Create engines/syzygy directory
-      run: mkdir -p engines/syzygy
+      - name: Create syzygy directory
+        run: mkdir -p engines/syzygy
 
-    - name: Download .rtbw files
-      run: |
-        cd engines/syzygy
-        curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/ \
-        | grep -Eo 'href="[^"]+\.rtbw"' | cut -d'"' -f2 \
-        | while read -r file; do
-            echo "Downloading $file"
-            success=false
-            for attempt in 1 2 3; do
-              wget -q "https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/$file" -O "$file"
-              if [ -s "$file" ]; then
-                success=true
-                break
-              else
-                echo "Attempt $attempt failed: $file may be corrupt or empty."
-                sleep 2
-              fi
-            done
-            if [ "$success" = false ]; then
-              echo "Skipping likely corrupt file: $file"
-              rm -f "$file"
-            fi
-          done
+      - name: Fetch file list from suprabot repo
+        id: files
+        run: |
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          curl -s https://api.github.com/repos/suprateem-ux/suprabot/contents/engines/syzygy \
+            | jq -r '.[] | select(.type == "file") | .name' \
+            >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
-    - name: Download .rtbz files
-      run: |
-        cd engines/syzygy
-        curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/ \
-        | grep -Eo 'href="[^"]+\.rtbz"' | cut -d'"' -f2 \
-        | while read -r file; do
-            echo "Downloading $file"
-            success=false
-            for attempt in 1 2 3; do
-              wget -q "https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/$file" -O "$file"
-              if [ -s "$file" ]; then
-                success=true
-                break
-              else
-                echo "Attempt $attempt failed: $file may be corrupt or empty."
-                sleep 2
-              fi
-            done
-            if [ "$success" = false ]; then
-              echo "Skipping likely corrupt file: $file"
-              rm -f "$file"
-            fi
-          done
+      - name: Download each file
+        run: |
+          base="https://raw.githubusercontent.com/suprateem-ux/suprabot/main/engines/syzygy"
+          mkdir -p engines/syzygy
+          while read -r fname; do
+            echo "Downloading $fname"
+            curl -sSL "$base/$fname" -o "engines/syzygy/$fname"
+          done <<< "${{ steps.files.outputs.files }}"
 
-    - name: Git LFS track files
-      run: |
-        git lfs track "engines/syzygy/*.rtbw"
-        git lfs track "engines/syzygy/*.rtbz"
+      - name: Track with Git LFS
+        run: |
+          git lfs track "engines/syzygy/*.rtbw"
+          git lfs track "engines/syzygy/*.rtbz"
 
-    - name: Commit and push tablebases
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
-        git add engines/syzygy .gitattributes
-        git commit -m "Add Syzygy 3-4-5 WDL and DTZ tablebases" || echo "Nothing to commit"
-        git push
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add engines/syzygy .gitattributes
+          git commit -m "Sync Suprabot Syzygy tablebases" || echo "Nothing to commit"
+          git push
