@@ -1,82 +1,36 @@
-name: Download Syzygy Tablebases
-
-on:
-  workflow_dispatch:
-
-jobs:
-  download_syzygy:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        lfs: true
-
-    - name: Install Git LFS
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git-lfs
-        git lfs install
-
-    - name: Create engines/syzygy directory
-      run: mkdir -p engines/syzygy
-
-    - name: Download .rtbw files 
-      run: |
-        cd engines/syzygy
-        curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/ \
-        | grep -Eo 'href="[^"]+\.rtbw"' | cut -d'"' -f2 \
-        | while read -r file; do
-            echo "Downloading $file"
-            success=false
-            for attempt in 1 2 3; do
-              wget -q "https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/$file" -O "$file"
-              if file "$file" | grep -q "data"; then
-                success=true
-                break
-              else
-                echo "Attempt $attempt failed: $file may be corrupt."
-              fi
-            done
-            if [ "$success" = false ]; then
-              echo "Skipping corrupt file: $file"
-              rm -f "$file"
-            fi
-          done
-
-    - name: Download .rtbz files 
-      run: |
-        cd engines/syzygy
-        curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/ \
-        | grep -Eo 'href="[^"]+\.rtbz"' | cut -d'"' -f2 \
-        | while read -r file; do
-            echo "Downloading $file"
-            success=false
-            for attempt in 1 2 3; do
-              wget -q "https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/$file" -O "$file"
-              if file "$file" | grep -q "data"; then
-                success=true
-                break
-              else
-                echo "Attempt $attempt failed: $file may be corrupt."
-              fi
-            done
-            if [ "$success" = false ]; then
-              echo "Skipping corrupt file: $file"
-              rm -f "$file"
-            fi
-          done
-
-    - name: Git LFS track Syzygy files
-      run: |
-        git lfs track "engines/syzygy/*.rtbw"
-        git lfs track "engines/syzygy/*.rtbz"
-
-    - name: Commit and push to repo
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
-        git add engines/syzygy .gitattributes
-        git commit -m "Add Syzygy 3-4-5 WDL and DTZ tablebases" || echo "Nothing to commit"
-        git push
+Run cd engines/syzygy
+Downloading KBBBvK.rtbw
+Attempt 1 failed: KBBBvK.rtbw may be corrupt.
+Attempt 2 failed: KBBBvK.rtbw may be corrupt.
+Attempt 3 failed: KBBBvK.rtbw may be corrupt.
+Skipping corrupt file: KBBBvK.rtbw
+Downloading KBBNvK.rtbw
+Attempt 1 failed: KBBNvK.rtbw may be corrupt.
+Attempt 2 failed: KBBNvK.rtbw may be corrupt.
+Attempt 3 failed: KBBNvK.rtbw may be corrupt.
+Skipping corrupt file: KBBNvK.rtbw
+Downloading KBBPvK.rtbw
+Attempt 1 failed: KBBPvK.rtbw may be corrupt.
+Attempt 2 failed: KBBPvK.rtbw may be corrupt.
+Attempt 3 failed: KBBPvK.rtbw may be corrupt.
+Skipping corrupt file: KBBPvK.rtbw
+Downloading KBBvK.rtbw
+Attempt 1 failed: KBBvK.rtbw may be corrupt.
+Attempt 2 failed: KBBvK.rtbw may be corrupt.
+Attempt 3 failed: KBBvK.rtbw may be corrupt.
+Skipping corrupt file: KBBvK.rtbw
+Downloading KBBvKB.rtbw
+Attempt 1 failed: KBBvKB.rtbw may be corrupt.
+Attempt 2 failed: KBBvKB.rtbw may be corrupt.
+Attempt 3 failed: KBBvKB.rtbw may be corrupt.
+Skipping corrupt file: KBBvKB.rtbw
+Downloading KBBvKN.rtbw
+Attempt 1 failed: KBBvKN.rtbw may be corrupt.
+Attempt 2 failed: KBBvKN.rtbw may be corrupt.
+Attempt 3 failed: KBBvKN.rtbw may be corrupt.
+Skipping corrupt file: KBBvKN.rtbw
+Downloading KBBvKP.rtbw
+Attempt 1 failed: KBBvKP.rtbw may be corrupt.
+Attempt 2 failed: KBBvKP.rtbw may be corrupt.
+Attempt 3 failed: KBBvKP.rtbw may be corrupt.
+Skipping corrupt file: KBBvKP.rtbw
