@@ -85,7 +85,7 @@ def fetch():
             fen = g.get("initialFen", "")
             pgn = g.get("pgn", "")
 
-            if fen and pgn and len(fen_to_pgns[fen]) < 7:
+            if fen and pgn and len(fen_to_pgns[fen]) < 11:
                 fen_to_pgns[fen].append(pgn.strip())
 
     total_games = 0
