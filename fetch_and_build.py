@@ -23,6 +23,9 @@ bots = [
     "ChampionKitten",
     "LeelaMultiPoss",
     "ToromBot",
+    "Ayaangamerzbot",
+    "Lili-ai",
+    "BOT_DeChess"
 ]
 
 def fetch():
