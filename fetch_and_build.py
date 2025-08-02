@@ -2,41 +2,33 @@ import requests
 import json
 import collections
 import time
+import os
 
-# Bot usernames to include
+# List of bot usernames
 bots = [
-    "AttackKing_Bot",
-    "mayhem23111",
-    "InvinxibleFlxsh",
-    "YoBot_v2",
-    "VEER-OMEGA-BOT",
-    "MaggiChess16",
-    "NimsiluBot",
-    "pangubot",
-    "Loss-Not-Defined",
-    "strain-on-veins",
-    "BOTTYBADDY11",
-    "LeelaMultiPoss",
-    "LeelaChessTest",
-    "BOT_Stockfish13",
-    "Endogenetic-Bot",
-    "Sooraj_Kumar_P_S",
-    "Classic_BOT-v2",
-    "Exogenetic-Bot",
-    "NNUE_Drift",
-    "caissa-x",
-    
+    "AttackKing_Bot", "mayhem23111", "InvinxibleFlxsh", "YoBot_v2", "VEER-OMEGA-BOT",
+    "MaggiChess16", "NimsiluBot", "pangubot", "Loss-Not-Defined", "strain-on-veins",
+    "BOTTYBADDY11", "LeelaMultiPoss", "LeelaChessTest", "BOT_Stockfish13",
+    "Endogenetic-Bot", "Sooraj_Kumar_P_S", "Classic_BOT-v2", "Exogenetic-Bot",
+    "NNUE_Drift", "caissa-x",
 ]
 
+token = os.getenv("LICHESS_TOKEN")
+
 def fetch():
-    headers = {"Accept": "application/x-ndjson"}
+    headers = {
+        "Accept": "application/x-ndjson"
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
     fen_to_pgns = collections.defaultdict(list)
 
     for bot in bots:
         print(f"🔍 Fetching games for {bot}")
         url = f"https://lichess.org/api/games/user/{bot}"
         params = {
-            "max": 3000,
+            "max": 500,
             "perfType": "standard",
             "rated": "true",
             "analysed": "false",
@@ -81,11 +73,9 @@ def fetch():
             fen = g.get("initialFen", "")
             pgn = g.get("pgn", "")
 
-            # Store up to 3 PGNs per FEN
             if fen and pgn and len(fen_to_pgns[fen]) < 3:
                 fen_to_pgns[fen].append(pgn.strip())
 
-    # Save all collected PGNs
     total_games = 0
     with open("filtered_960_bots_2200plus.pgn", "w", encoding="utf-8") as f:
         for pgns in fen_to_pgns.values():
