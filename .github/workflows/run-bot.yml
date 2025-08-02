@@ -52,5 +52,5 @@ jobs:
           chmod +x engines/fairy-stockfish
       
       - name: Run Bot
-        run: python -u user_interface.py --autochallenge Exogenetic-Bot --matchmaking
+        run: python -u user_interface.py tournament QvLZsRrh
 
