@@ -1,54 +1,54 @@
-name: Upload Syzygy Tablebases
+name: Download Syzygy Tablebases
 
 on:
   workflow_dispatch:
 
 jobs:
-  upload:
+  download_syzygy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          lfs: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        lfs: true
 
-      - name: Install Git LFS
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git-lfs
-          git lfs install
+    - name: Install Git LFS
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git-lfs
+        git lfs install
 
-      - name: Configure Git identity
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+    - name: Create engines/syzygy directory
+      run: mkdir -p engines/syzygy
 
-      - name: Create engines/syzygy directory
-        run: mkdir -p engines/syzygy
+    - name: Download .rtbw files
+      run: |
+        curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/ \
+          | grep -Eo 'href="[^"]+\.rtbw"' \
+          | cut -d'"' -f2 \
+          | while read -r file; do
+              wget -q https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/$file -P engines/syzygy
+            done
 
-      - name: Download WDL (.rtbw) files
-        run: |
-          wget -r -np -nH --cut-dirs=3 --accept "*.rtbw" \
-            https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/ \
-            -P engines/syzygy/
+    - name: Download .rtbz files
+      run: |
+        curl -s https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/ \
+          | grep -Eo 'href="[^"]+\.rtbz"' \
+          | cut -d'"' -f2 \
+          | while read -r file; do
+              wget -q https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/$file -P engines/syzygy
+            done
 
-      - name: Download DTZ (.rtbz) files
-        run: |
-          wget -r -np -nH --cut-dirs=3 --accept "*.rtbz" \
-            https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/ \
-            -P engines/syzygy/
+    - name: Git LFS track files
+      run: |
+        git lfs track "engines/syzygy/*.rtbw"
+        git lfs track "engines/syzygy/*.rtbz"
 
-      - name: Track files with Git LFS
-        run: |
-          git lfs track "engines/syzygy/*.rtbw"
-          git lfs track "engines/syzygy/*.rtbz"
-          echo "engines/syzygy/*.rtbw" >> .gitattributes
-          echo "engines/syzygy/*.rtbz" >> .gitattributes
-
-      - name: Commit and push
-        run: |
-          git add engines/syzygy .gitattributes
-          git commit -m "Add Syzygy 3-4-5 WDL and DTZ tablebases"
-          git push || echo "Nothing to push"
+    - name: Commit and push tablebases
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git add engines/syzygy .gitattributes
+        git commit -m "Add Syzygy 3-4-5 WDL and DTZ tablebases" || echo "Nothing to commit"
+        git push
