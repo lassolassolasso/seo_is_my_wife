@@ -1,6 +1,11 @@
 from dataclasses import dataclass
 from typing import Any, Literal
 
+@dataclass
+class Limit_Config:
+    time: float | None
+    depth: int | None
+    nodes: int | None
 
 @dataclass
 class Engine_Config:
@@ -9,6 +14,7 @@ class Engine_Config:
     silence_stderr: bool
     move_overhead_multiplier: float | None
     uci_options: dict[str, Any]
+    limits: Limit_Config
 
 
 @dataclass
