@@ -11,7 +11,11 @@ engines:
       Threads: 7                          # Max CPU threads the engine can use.
       Hash: 4096                          # Max memory (in megabytes) the engine can allocate.
       Move Overhead: 150                  # Increase if your bot flags games too often.
-
+    limits:                               # Limits that end the move calculation early.
+      time: 7.0                           # Max time per move in seconds.
+      depth: 26                           # Max depth per move.
+      nodes: 4000000                      # Max nodes per move.
+      
   variants:                               # Engine used for standard chess and when no suitable special engine is configured.
     dir: "./engines"                      # Directory containing the engine.
     name: "fairy-stockfish"          # Binary name of the engine to use (update for Windows).
@@ -37,10 +41,10 @@ engines:
       
 syzygy:
   standard:
-    enabled: false                         # Activate local syzygy endgame tablebases.
+    enabled: true                         # Activate local syzygy endgame tablebases.
     paths:                                # Paths to local syzygy endgame tablebases.
       - "./engines/syzygy"
-    max_pieces: 7                         # Count of max pieces in the local syzygy endgame tablebases.
+    max_pieces: 5                         # Count of max pieces in the local syzygy endgame tablebases.
     instant_play: true                    # Whether the bot should play directly from syzygy without engine if possible.
   antichess:
     enabled: false                        # Activate local syzygy endgame tablebases.
