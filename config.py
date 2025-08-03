@@ -9,6 +9,7 @@ import yaml
 
 from configs import (Books_Config, Challenge_Config, ChessDB_Config, Engine_Config, Gaviota_Config,
                      Lichess_Cloud_Config, Matchmaking_Config, Matchmaking_Type_Config, Messages_Config,
+                     Lichess_Cloud_Config, Limit_Config, Matchmaking_Config, Matchmaking_Type_Config, Messages_Config,
                      Offer_Draw_Config, Online_EGTB_Config, Online_Moves_Config, Opening_Books_Config,
                      Opening_Explorer_Config, Resign_Config, Syzygy_Config)
 
@@ -106,7 +107,8 @@ class Config:
             ['name', str, '"name" must be a string wrapped in quotes.'],
             ['ponder', bool, '"ponder" must be a bool.'],
             ['silence_stderr', bool, '"silence_stderr" must be a bool.'],
-            ['uci_options', dict | None, '"uci_options" must be a dictionary with indented keys followed by colons.']]
+            ['uci_options', dict | None, '"uci_options" must be a dictionary with indented keys followed by colons.'],
+            ['limits', dict | None, '"limits" must be a dictionary with indented keys followed by colons.']]
 
         engine_configs: dict[str, Engine_Config] = {}
         for key, settings in engines_section.items():
@@ -128,12 +130,17 @@ class Config:
             if not os.access(settings['path'], os.X_OK):
                 raise RuntimeError(f'The engine "{settings["path"]}" doesnt have execute (x) permission. '
                                    f'Try: chmod +x {settings["path"]}')
-
+              
+            limits_settings = settings['limits'] or {}
+          
             engine_configs[key] = Engine_Config(settings['path'],
                                                 settings['ponder'],
                                                 settings['silence_stderr'],
                                                 settings.get('move_overhead_multiplier'),
-                                                settings['uci_options'] or {})
+                                                settings['uci_options'] or {},
+                                                Limit_Config(limits_settings.get('time'),
+                                                             limits_settings.get('depth'),
+                                                             limits_settings.get('nodes')))
 
         return engine_configs
 
