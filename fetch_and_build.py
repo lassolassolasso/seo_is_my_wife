@@ -1,6 +1,6 @@
 import requests
 import time
-import json
+import os
 
 BOTS = [
     "NimsiluBot",
@@ -11,78 +11,78 @@ BOTS = [
 ]
 
 OUTPUT_PGN = "filtered_960_bots_2200plus.pgn"
-MAX_GAMES_PER_BOT = 200
 
-def fetch_games(username):
-    url = f"https://lichess.org/api/games/user/{username}"
-    headers = {"Accept": "application/x-ndjson"}
+def is_valid_line(line):
+    return line.startswith("[Event") or line.startswith("[Site") or line.startswith("[Date") or line.startswith("[Round") or line.startswith("[White") or line.startswith("[Black") or line.startswith("[Result") or line.startswith("[FEN") or line.startswith("[SetUp") or line.startswith("1.") or line == ""
+
+def fetch_full_games(bot):
+    url = f"https://lichess.org/api/games/user/{bot}"
+    headers = {
+        "Accept": "application/x-chess-pgn"
+    }
     params = {
-        "max": MAX_GAMES_PER_BOT,
+        "max": 3000,
         "variant": "chess960",
-        "pgnInJson": "true",
+        "perfType": "chess960",
+        "vs": ",".join(BOTS),
+        "pgnInJson": False,
+        "rated": "true",
+        "analysed": "false",
+        "opening": "false",
         "clocks": "false",
-        "evals": "false",
-        "opening": "false"
+        "evals": "false"
     }
 
-    print(f"Fetching games for {username}...")
+    print(f"Fetching games for {bot}...")
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
-        print(f"  Failed to fetch games for {username} - Status: {response.status_code}")
-        return []
+        print(f"  Failed for {bot} - {response.status_code}")
+        return ""
 
-    return [line for line in response.text.strip().split('\n') if line]
+    return response.text
 
-def parse_rating(player):
-    rating = player.get("rating", 0)
-    provisional = player.get("provisional", False)
-    return rating, provisional
+def filter_games(pgn_data):
+    games = pgn_data.strip().split("\n\n\n")
+    valid_games = []
 
-def extract_valid_games(games_ndjson):
-    valid_pgns = []
-    for line in games_ndjson:
-        try:
-            game = json.loads(line)
-        except json.JSONDecodeError:
+    for game in games:
+        lines = game.split("\n")
+        tags = {line.split(" ")[0][1:]: line for line in lines if line.startswith("[")}
+        if "[Variant \"Chess960\"]" not in tags.get("Variant", ""):
             continue
+        white = tags.get("White", "")
+        black = tags.get("Black", "")
+        w_rating_line = tags.get("WhiteElo", "")
+        b_rating_line = tags.get("BlackElo", "")
+        w_prov = "WhiteRatingDiff" not in tags
+        b_prov = "BlackRatingDiff" not in tags
 
-        if game.get("variant") != "chess960":
-            continue
+        def extract_rating(line):
+            try:
+                return int(line.split('"')[1])
+            except:
+                return 0
 
-        players = game.get("players", {})
-        white = players.get("white", {})
-        black = players.get("black", {})
+        wr = extract_rating(w_rating_line)
+        br = extract_rating(b_rating_line)
 
-        white_user = white.get("user", {})
-        black_user = black.get("user", {})
+        if (w_prov or wr >= 2400) and (b_prov or br >= 2400):
+            valid_games.append(game.strip())
 
-        # Ensure both players are bots
-        if not white_user.get("bot") or not black_user.get("bot"):
-            continue
-
-        white_rating, white_prov = parse_rating(white)
-        black_rating, black_prov = parse_rating(black)
-
-        white_ok = white_prov or white_rating >= 2400
-        black_ok = black_prov or black_rating >= 2400
-
-        if white_ok and black_ok and "pgn" in game:
-            valid_pgns.append(game["pgn"].strip())
-
-    return valid_pgns
+    return valid_games
 
 def main():
-    all_pgns = []
+    all_games = []
     for bot in BOTS:
-        ndjson = fetch_games(bot)
-        time.sleep(1.5)  # Respect rate limits
-        filtered = extract_valid_games(ndjson)
+        pgn_data = fetch_full_games(bot)
+        time.sleep(2)  # rate limit
+        filtered = filter_games(pgn_data)
         print(f"  → {len(filtered)} valid games for {bot}")
-        all_pgns.extend(filtered)
+        all_games.extend(filtered)
 
-    print(f"\nTotal games collected: {len(all_pgns)}")
+    print(f"\nTotal games collected: {len(all_games)}")
     with open(OUTPUT_PGN, "w", encoding="utf-8") as f:
-        f.write("\n\n".join(all_pgns))
+        f.write("\n\n\n".join(all_games))
     print(f"PGN saved to {OUTPUT_PGN}")
 
 if __name__ == "__main__":
