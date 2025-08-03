@@ -1,87 +1,89 @@
 import requests
-import json
-import collections
 import time
-import os
+import json
 
-TOKEN = os.getenv("LICHESS_TOKEN")
-bots = [
-    "SoggiestShrimp", "AttackKing_Bot", "PositionalAI", "mayhem23111",
-    "InvinxibleFlxsh", "YoBot_v2", "VEER-OMEGA-BOT", "MaggiChess16",
-    "NimsiluBot", "pangubot", "Loss-Not-Defined", "Alexnajax_Fan",
-    "strain-on-veins", "BOTTYBADDY11", "ChampionKitten", "LeelaMultiPoss",
-    "ToromBot", "Ayaangamerzbot", "Lili-ai", "BOT_DeChess",
-    "Moment-That-Inspires", "Endogenetic-Bot", "Exogenetic-Bot"
+BOTS = [
+    "NimsiluBot",
+    "MaggiChess16",
+    "NNUE_Drift",
+    "Endogenetic-Bot",
+    "AttackKing_Bot"
 ]
 
-def fetch():
+OUTPUT_PGN = "filtered_960_bots_2200plus.pgn"
+MAX_GAMES_PER_BOT = 200
+
+def fetch_games(username):
+    url = f"https://lichess.org/api/games/user/{username}"
     headers = {"Accept": "application/x-ndjson"}
-    if TOKEN:
-        headers["Authorization"] = f"Bearer {TOKEN}"
+    params = {
+        "max": MAX_GAMES_PER_BOT,
+        "variant": "chess960",
+        "pgnInJson": "true",
+        "clocks": "false",
+        "evals": "false",
+        "opening": "false"
+    }
 
-    fen_to_pgns = collections.defaultdict(list)
+    print(f"Fetching games for {username}...")
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code != 200:
+        print(f"  Failed to fetch games for {username} - Status: {response.status_code}")
+        return []
 
-    for bot in bots:
-        print(f"🔍 Fetching games for {bot}")
-        url = f"https://lichess.org/api/games/user/{bot}"
-        params = {
-            "max": 3000,
-            "perfType": "chess960",
-            "analysed": "false",
-            "pgnInJson": "true",
-            "clocks": "false",
-            "opening": "false",
-            "moves": "true"
-        }
+    return [line for line in response.text.strip().split('\n') if line]
 
+def parse_rating(player):
+    rating = player.get("rating", 0)
+    provisional = player.get("provisional", False)
+    return rating, provisional
+
+def extract_valid_games(games_ndjson):
+    valid_pgns = []
+    for line in games_ndjson:
         try:
-            response = requests.get(url, headers=headers, params=params, stream=True, timeout=30)
-        except Exception as e:
-            print(f"Error while fetching {bot}: {e}")
+            game = json.loads(line)
+        except json.JSONDecodeError:
             continue
 
-        if response.status_code != 200:
-            print(f"Failed to fetch games for {bot}, status {response.status_code}")
-            time.sleep(3)
+        if game.get("variant") != "chess960":
             continue
 
-        for line in response.iter_lines():
-            if not line:
-                continue
+        players = game.get("players", {})
+        white = players.get("white", {})
+        black = players.get("black", {})
 
-            g = json.loads(line)
-            if g.get("variant") != "chess960":
-                continue
+        white_user = white.get("user", {})
+        black_user = black.get("user", {})
 
-            white = g.get("players", {}).get("white", {})
-            black = g.get("players", {}).get("black", {})
-            white_name = white.get("user", {}).get("name", "")
-            black_name = black.get("user", {}).get("name", "")
-            white_rating = white.get("rating", 0)
-            black_rating = black.get("rating", 0)
-            white_prov = white.get("provisional", False)
-            black_prov = black.get("provisional", False)
+        # Ensure both players are bots
+        if not white_user.get("bot") or not black_user.get("bot"):
+            continue
 
-            if white_name not in bots or black_name not in bots:
-                continue
+        white_rating, white_prov = parse_rating(white)
+        black_rating, black_prov = parse_rating(black)
 
-            if not ((white_rating >= 2390 or white_prov) and (black_rating >= 2390 or black_prov)):
-                continue
+        white_ok = white_prov or white_rating >= 2400
+        black_ok = black_prov or black_rating >= 2400
 
-            fen = g.get("initialFen", "")
-            pgn = g.get("pgn", "")
+        if white_ok and black_ok and "pgn" in game:
+            valid_pgns.append(game["pgn"].strip())
 
-            if fen and pgn and len(fen_to_pgns[fen]) < 11:
-                fen_to_pgns[fen].append(pgn.strip())
+    return valid_pgns
 
-    total_games = 0
-    with open("filtered_960_bots_2200plus.pgn", "w", encoding="utf-8") as f:
-        for pgns in fen_to_pgns.values():
-            for pgn in pgns:
-                f.write(pgn + "\n\n")
-                total_games += 1
+def main():
+    all_pgns = []
+    for bot in BOTS:
+        ndjson = fetch_games(bot)
+        time.sleep(1.5)  # Respect rate limits
+        filtered = extract_valid_games(ndjson)
+        print(f"  → {len(filtered)} valid games for {bot}")
+        all_pgns.extend(filtered)
 
-    print(f" Saved {total_games} games from {len(fen_to_pgns)} unique FENs to filtered_960_bots_2200plus.pgn")
+    print(f"\nTotal games collected: {len(all_pgns)}")
+    with open(OUTPUT_PGN, "w", encoding="utf-8") as f:
+        f.write("\n\n".join(all_pgns))
+    print(f"PGN saved to {OUTPUT_PGN}")
 
 if __name__ == "__main__":
-    fetch()
+    main()
