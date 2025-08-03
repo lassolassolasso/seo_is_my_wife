@@ -75,13 +75,13 @@ def fetch():
                 fen_to_pgns[fen].append(pgn.strip())
 
     total_games = 0
-    with open("filtered_960_bots_2390plus.pgn", "w", encoding="utf-8") as f:
+    with open("filtered_960_bots_2200plus.pgn", "w", encoding="utf-8") as f:
         for pgns in fen_to_pgns.values():
             for pgn in pgns:
                 f.write(pgn + "\n\n")
                 total_games += 1
 
-    print(f" Saved {total_games} games from {len(fen_to_pgns)} unique FENs to filtered_960_bots_2390plus.pgn")
+    print(f" Saved {total_games} games from {len(fen_to_pgns)} unique FENs to filtered_960_bots_2200plus.pgn")
 
 if __name__ == "__main__":
     fetch()
