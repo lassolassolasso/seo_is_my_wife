@@ -12,7 +12,7 @@ engines:
       Hash: 4096                          # Max memory (in megabytes) the engine can allocate.
       Move Overhead: 150                  # Increase if your bot flags games too often.
     limits:                               # Limits that end the move calculation early.
-      time: 7.0                           # Max time per move in seconds.
+      time: 5.0                           # Max time per move in seconds.
       depth: 26                           # Max depth per move.
       nodes: 4000000                      # Max nodes per move.
       
@@ -27,7 +27,11 @@ engines:
       Hash: 2048                           # Max memory (in megabytes) the engine can allocate.
       Move Overhead: 275                  # Increase if your bot flags games too often.
       EvalFile: "horde-28173ddccabe.nnue:racingkings-636b95f085e3.nnue:crazyhouse-8ebf84784ad2.nnue:kingofthehill-978b86d0e6a4.nnue:antichess-dd3cbe53cd4e.nnue:atomic-2cf13ff256cc.nnue:3check-cb5f517c228b.nnue"
-
+    limits:                               # Limits that end the move calculation early.
+      time: 5.0                           # Max time per move in seconds.
+      depth: 26                           # Max depth per move.
+      nodes: 4000000                      # Max nodes per move.
+      
   chess960:                               # Engine used for standard chess and when no suitable special engine is configured.
     dir: "./engines"                      # Directory containing the engine.
     name: "newsf"          # Binary name of the engine to use (update for Windows).
@@ -38,13 +42,17 @@ engines:
       Threads: 6                          # Max CPU threads the engine can use.
       Hash: 2048                           # Max memory (in megabytes) the engine can allocate.
       Move Overhead: 275                  # Increase if your bot flags games too often. 
+    limits:                               # Limits that end the move calculation early.
+      time: 5.0                           # Max time per move in seconds.
+      depth: 26                           # Max depth per move.
+      nodes: 4000000                      # Max nodes per move.
       
 syzygy:
   standard:
     enabled: true                         # Activate local syzygy endgame tablebases.
     paths:                                # Paths to local syzygy endgame tablebases.
       - "./engines/syzygy"
-    max_pieces: 5                         # Count of max pieces in the local syzygy endgame tablebases.
+    max_pieces: 7                         # Count of max pieces in the local syzygy endgame tablebases.
     instant_play: true                    # Whether the bot should play directly from syzygy without engine if possible.
   antichess:
     enabled: false                        # Activate local syzygy endgame tablebases.
