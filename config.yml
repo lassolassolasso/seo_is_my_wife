@@ -42,6 +42,7 @@ engines:
       Threads: 6                          # Max CPU threads the engine can use.
       Hash: 2048                           # Max memory (in megabytes) the engine can allocate.
       Move Overhead: 175                  # Increase if your bot flags games too often. 
+      UCI_Chess960: true 
     limits:                               # Limits that end the move calculation early.
       time: 5.0                           # Max time per move in seconds.
       depth: 26                           # Max depth per move.
