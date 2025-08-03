@@ -12,12 +12,14 @@ class Engine:
                  transport: asyncio.SubprocessTransport,
                  engine: chess.engine.UciProtocol,
                  ponder: bool,
+                 opponent: chess.engine.Opponent,
                  limit_config: Limit_Config) -> None:
         self.transport = transport
         self.engine = engine
         self.ponder = ponder
-        self.opponent = opponent
+        self.opponent = opponent  
         self.limit_config = limit_config
+
 
     @classmethod
     async def from_config(cls,
