@@ -1,3 +1,4 @@
+
 import asyncio
 from asyncio import Event, Task
 from collections import deque
@@ -131,10 +132,20 @@ class Game_Manager:
         self.changed_event.set()
 
     async def _process_tournament_request(self, tournament_request: Tournament_Request) -> None:
+        if tournament_request.id_ in self.unstarted_tournaments:
+            return
+
         if tournament_request.id_ in self.tournaments:
             return
 
+        if tournament_request.id_ in {tournament.id_ for tournament in self.tournaments_to_join}:
+            return
+
         tournament_info = await self.api.get_tournament_info(tournament_request.id_)
+        if not tournament_info:
+            print(f'Tournament "{tournament_request.id_}" not found.')
+            return
+
         tournament = Tournament.from_tournament_info(tournament_info)
         tournament.team = tournament_request.team
         tournament.password = tournament_request.password
@@ -165,18 +176,18 @@ class Game_Manager:
         if tournament := self.unstarted_tournaments.pop(tournament_id, None):
             tournament.cancel()
             print(f'Removed unstarted tournament "{tournament.name}".')
-            return
 
         if tournament := self.tournaments.pop(tournament_id, None):
             await self.api.withdraw_tournament(tournament_id)
             tournament.cancel()
             print(f'Left tournament "{tournament.name}".')
-            return
 
         for tournament in list(self.tournaments_to_join):
             if tournament.id_ == tournament_id:
                 self.tournaments_to_join.remove(tournament)
                 print(f'Removed unjoined tournament "{tournament.name}".')
+
+        self._set_next_matchmaking(1)
 
     async def _tournament_start_task(self, tournament: Tournament) -> None:
         await asyncio.sleep(tournament.seconds_to_start)
@@ -209,6 +220,11 @@ class Game_Manager:
             self.matchmaking.on_game_finished(game.was_aborted)
             self.current_matchmaking_game_id = None
 
+        if game.ejected_tournament in self.tournaments:
+            self.tournaments[game.ejected_tournament].cancel()
+            del self.tournaments[game.ejected_tournament]
+            print(f'Ignoring tournament "{game.ejected_tournament}" after failure to start the game.')
+
         self._set_next_matchmaking(self.config.matchmaking.delay)
         self.changed_event.set()
 
@@ -240,8 +256,6 @@ class Game_Manager:
     async def _accept_challenge(self, challenge: Challenge) -> None:
         if await self.api.accept_challenge(challenge.challenge_id):
             self.reserved_game_spots += 1
-        else:
-            print(f'Challenge "{challenge.challenge_id}" could not be accepted!')
 
     async def _check_matchmaking(self) -> None:
         self.next_matchmaking = None
