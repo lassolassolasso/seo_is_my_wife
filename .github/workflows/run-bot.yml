@@ -55,5 +55,5 @@ jobs:
         env:
           TOKEN: ${{ secrets.TOKEN }}
         run: |
-          python challenge_nimsilu_100.py &  # Run in background
-          python -u user_interface.py --matchmaking  # Main bot runs here
+          python challenge_nimsilu_100.py &  
+          python -u user_interface.py --matchmaking  
