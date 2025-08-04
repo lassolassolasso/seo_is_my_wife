@@ -54,3 +54,8 @@ jobs:
       - name: Run Bot
         run: python -u user_interface.py --matchmaking
 
+      - name: Challenge NimsiluBot (100 games)
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          python challenge_nimsilu_100.py
