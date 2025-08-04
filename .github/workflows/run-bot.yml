@@ -58,4 +58,4 @@ jobs:
         env:
           TOKEN: ${{ secrets.TOKEN }}
         run: |
-          python challenge_nimsilu_100.py   
+          python user_interface.py --autochallenge NimsiluBot   
