@@ -1,4 +1,7 @@
+
+import asyncio
 import random
+import struct
 import time
 from collections.abc import Awaitable, Callable, Iterable
 from itertools import islice
@@ -85,41 +88,37 @@ class Lichess_Game:
     @staticmethod
     def _get_engine_key(config: Config, board: chess.Board, is_white: bool, game_info: Game_Information) -> str:
         color = 'white' if is_white else 'black'
+        is_human = game_info.white_title != 'BOT' or game_info.black_title != 'BOT'
+
+        def check_engine_key(base_name: str) -> str | None:
+            if is_human and f'{base_name}_human' in config.engines:
+                return f'{base_name}_human'
+
+            if f'{base_name}_{color}' in config.engines:
+                return f'{base_name}_{color}'
+
+            if base_name in config.engines:
+                return base_name
 
         if board.uci_variant == 'chess':
             if board.chess960:
-                if f'chess960_{color}' in config.engines:
-                    return f'chess960_{color}'
-
-                if 'chess960' in config.engines:
-                    return 'chess960'
+                if key := check_engine_key('chess960'):
+                    return key
 
             else:
-                if f'{game_info.speed}_{color}' in config.engines:
-                    return f'{game_info.speed}_{color}'
-
-                if game_info.speed in config.engines:
-                    return game_info.speed
+                if key := check_engine_key(game_info.speed):
+                    return key
 
         else:
-            for alias in [alias.lower() for alias in board.aliases]:
-                if f'{alias}_{color}' in config.engines:
-                    return f'{alias}_{color}'
+            for alias in map(str.lower, board.aliases):
+                if key := check_engine_key(alias):
+                    return key
 
-                if alias in config.engines:
-                    return alias
+            if key := check_engine_key('variants'):
+                return key
 
-            if f'variants_{color}' in config.engines:
-                return f'variants_{color}'
-
-            if 'variants' in config.engines:
-                return 'variants'
-
-        if f'standard_{color}' in config.engines:
-            return f'standard_{color}'
-
-        if 'standard' in config.engines:
-            return 'standard'
+        if key := check_engine_key('standard'):
+            return key
 
         raise RuntimeError(f'No suitable engine for "{board.uci_variant}" configured.')
 
@@ -159,14 +158,23 @@ class Lichess_Game:
 
         return Lichess_Move(move_response.move.uci(), self._offer_draw(move_response), self._resign(move_response))
 
-    def update(self, gameState_event: dict[str, Any]) -> None:
-        moves = gameState_event['moves'].split()
-        if len(moves) <= len(self.board.move_stack):
-            return
-
-        self.board.push(chess.Move.from_uci(moves[-1]))
+    def update(self, gameState_event: dict[str, Any]) -> bool:
         self.white_time = gameState_event['wtime'] / 1000
         self.black_time = gameState_event['btime'] / 1000
+
+        moves = gameState_event['moves'].split()
+        if len(moves) > len(self.board.move_stack):
+            self.board.push(chess.Move.from_uci(moves[-1]))
+            return True
+
+        return False
+
+    async def takeback(self) -> None:
+        self.board.pop()
+        if self.is_our_turn:
+            self.board.pop()
+        self.last_pv.clear()
+        await self.start_pondering()
 
     @property
     def is_our_turn(self) -> bool:
@@ -268,7 +276,12 @@ class Lichess_Game:
             return
 
         for name, book_reader in self.book_settings.readers.items():
-            entries = list(book_reader.find_all(self.board))
+            try:
+                entries = list(book_reader.find_all(self.board))
+            except struct.error:
+                print(f'Skipping book "{name}" due to error.')
+                continue
+
             if not entries:
                 continue
 
@@ -309,38 +322,34 @@ class Lichess_Game:
 
     def _get_book_key(self) -> str | None:
         color = 'white' if self.is_white else 'black'
+        is_human = self.game_info.white_title != 'BOT' or self.game_info.black_title != 'BOT'
+
+        def check_book_key(base_name: str) -> str | None:
+            if is_human and f'{base_name}_human' in self.config.opening_books.books:
+                return f'{base_name}_human'
+
+            if f'{base_name}_{color}' in self.config.opening_books.books:
+                return f'{base_name}_{color}'
+
+            if base_name in self.config.opening_books.books:
+                return base_name
 
         if self.board.uci_variant != 'chess':
-            for alias in [alias.lower() for alias in self.board.aliases]:
-                if f'{alias}_{color}' in self.config.opening_books.books:
-                    return f'{alias}_{color}'
-
-                if alias in self.config.opening_books.books:
-                    return alias
+            for alias in map(str.lower, self.board.aliases):
+                if key := check_book_key(alias):
+                    return key
 
             return
 
         if self.board.chess960:
-            if f'chess960_{color}' in self.config.opening_books.books:
-                return f'chess960_{color}'
-
-            if 'chess960' in self.config.opening_books.books:
-                return 'chess960'
+            if key := check_book_key('chess960'):
+                return key
 
         else:
-            if f'{self.game_info.speed}_{color}' in self.config.opening_books.books:
-                return f'{self.game_info.speed}_{color}'
+            if key := check_book_key(self.game_info.speed):
+                return key
 
-            if self.game_info.speed in self.config.opening_books.books:
-                return self.game_info.speed
-
-        if f'standard_{color}' in self.config.opening_books.books:
-            return f'standard_{color}'
-
-        if 'standard' in self.config.opening_books.books:
-            return 'standard'
-
-        return
+        return check_book_key('standard')
 
     async def _make_opening_explorer_move(self) -> Move_Response | None:
         out_of_book = self.out_of_opening_explorer_counter >= 5
@@ -356,7 +365,10 @@ class Lichess_Game:
         if out_of_book or too_deep or out_of_range or too_many_moves or not has_time:
             return
 
-        if self.config.online_moves.opening_explorer.anti:
+        if self.config.online_moves.opening_explorer.player:
+            color = 'white' if self.board.turn else 'black'
+            username = self.config.online_moves.opening_explorer.player
+        elif self.config.online_moves.opening_explorer.anti:
             color = 'black' if self.board.turn else 'white'
             username = self.game_info.black_name if self.board.turn else self.game_info.white_name
         else:
@@ -484,11 +496,14 @@ class Lichess_Game:
             return
 
         start_time = time.perf_counter()
-        response = await self.api.get_chessdb_eval(self.board.fen(), self.config.online_moves.chessdb.timeout)
+        response = await self.api.get_chessdb_eval(fen := self.board.fen(), self.config.online_moves.chessdb.timeout)
         if response is None:
             self.out_of_chessdb_counter += 1
             self._reduce_own_time(time.perf_counter() - start_time)
             return
+
+        if response['status'] != 'rate limit exceeded':
+            asyncio.create_task(self.api.queue_chessdb(fen))
 
         if response['status'] != 'ok':
             self.out_of_chessdb_counter += 1
@@ -877,10 +892,7 @@ class Lichess_Game:
         return move_sources
 
     def _get_move_overhead(self, engine_config: Engine_Config) -> float:
-        move_overhead_multiplier = (1.0
-                                    if engine_config.move_overhead_multiplier is None
-                                    else engine_config.move_overhead_multiplier)
-        return max(self.game_info.initial_time_ms / 60_000 * move_overhead_multiplier, 1.0)
+        return max(self.game_info.initial_time_ms / 60_000 * engine_config.move_overhead_multiplier, 1.0)
 
     def _has_time(self, min_time: float) -> bool:
         if len(self.board.move_stack) < 2:
