@@ -1,18 +1,20 @@
 from dataclasses import dataclass
 from typing import Any, Literal
 
+
 @dataclass
 class Limit_Config:
     time: float | None
     depth: int | None
     nodes: int | None
 
+
 @dataclass
 class Engine_Config:
     path: str
     ponder: bool
     silence_stderr: bool
-    move_overhead_multiplier: float | None
+    move_overhead_multiplier: float
     uci_options: dict[str, Any]
     limits: Limit_Config
 
@@ -51,6 +53,7 @@ class Opening_Books_Config:
 class Opening_Explorer_Config:
     enabled: bool
     priority: int
+    player: str | None
     only_without_book: bool
     use_for_variants: bool
     min_time: int
@@ -124,6 +127,7 @@ class Resign_Config:
 @dataclass
 class Challenge_Config:
     concurrency: int
+    max_takebacks: int
     bullet_with_increment_only: bool
     min_increment: int | None
     max_increment: int | None
@@ -133,8 +137,6 @@ class Challenge_Config:
     time_controls: list[str]
     bot_modes: list[str]
     human_modes: list[str]
-    casual_variants_only: bool
-
 
 
 @dataclass
