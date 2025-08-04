@@ -71,7 +71,8 @@ class User_Interface:
                         opponent, 30, 0, False, Challenge_Color.WHITE, Variant.CHESS960, 300))
                     challenges.append(Challenge_Request(
                         opponent, 30, 0, False, Challenge_Color.BLACK, Variant.CHESS960, 300))
-                self.game_manager.request_challenge(*challenges)
+                await self.game_manager.request_challenge(*challenges)
+                print(f'Queued {len(challenges)} challenges against {opponent}.')
 
             self.game_manager_task = asyncio.create_task(self.game_manager.run())
 
