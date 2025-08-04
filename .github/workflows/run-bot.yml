@@ -54,8 +54,5 @@ jobs:
       - name: Install Extra Dependencies for Challenge Script
         run: pip install requests
       
-      - name: Run Bot + Challenge NimsiluBot 
-        env:
-          TOKEN: ${{ secrets.TOKEN }}
-        run: |
-          python user_interface.py --autochallenge NimsiluBot   
+      - name: Run Bot
+        run: python -u user_interface.py --autochallenge "NimsiluBot" --matchmaking  
