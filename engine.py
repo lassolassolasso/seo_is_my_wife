@@ -7,6 +7,7 @@ import chess.engine
 
 from configs import Engine_Config, Limit_Config, Syzygy_Config
 
+
 class Engine:
     def __init__(self,
                  transport: asyncio.SubprocessTransport,
@@ -17,9 +18,8 @@ class Engine:
         self.transport = transport
         self.engine = engine
         self.ponder = ponder
-        self.opponent = opponent  
+        self.opponent = opponent
         self.limit_config = limit_config
-
 
     @classmethod
     async def from_config(cls,
@@ -34,7 +34,7 @@ class Engine:
         await engine.send_opponent_information(opponent=opponent)
 
         return cls(transport, engine, engine_config.ponder, opponent, engine_config.limits)
-                              
+
     @classmethod
     async def test(cls, engine_config: Engine_Config) -> None:
         stderr = subprocess.DEVNULL if engine_config.silence_stderr else None
@@ -82,14 +82,12 @@ class Engine:
                         increment: float
                         ) -> tuple[chess.Move, chess.engine.InfoDict]:
         if len(board.move_stack) < 2:
-
-            time_limit = 15.0 if self.opponent.is_engine else 5.0
+            time_limit = 10.0 if self.opponent.is_engine else 2.5
             if self.limit_config.time:
                 time_limit = min(time_limit, self.limit_config.time)
 
             limit = chess.engine.Limit(time=time_limit, depth=self.limit_config.depth, nodes=self.limit_config.nodes)
             ponder = False
-            
         else:
             limit = chess.engine.Limit(white_clock=white_time, white_inc=increment,
                                        black_clock=black_time, black_inc=increment,
