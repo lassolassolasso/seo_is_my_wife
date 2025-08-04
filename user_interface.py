@@ -60,36 +60,24 @@ class User_Interface:
             await self._handle_bot_status(account.get('title'), allow_upgrade)
             await self._test_engines()
 
-            # ✅ Always create game_manager first
             self.game_manager = Game_Manager(self.api, self.config, username)
 
-            # ✅ Auto-challenge logic (only one opponent)
             if tournament_id is None and not start_matchmaking and autochallenge:
-                opponent = args.autochallenge
-                print(f'Auto-challenging {opponent} 20 times (10 white, 10 black)...')
+                opponent = autochallenge
+                print(f'Auto-challenging {opponent} 50 times (25 white, 25 black), ½+0, Chess960 casual...')
                 challenges = []
-                for _ in range(10):
+                for _ in range(25):
                     challenges.append(Challenge_Request(
-                        opponent, 30, 0, False, Challenge_Color.WHITE, Variant.STANDARD, 300))
+                        opponent, 30, 0, False, Challenge_Color.WHITE, Variant.CHESS960, 300))
                     challenges.append(Challenge_Request(
-                        opponent, 30, 0, False, Challenge_Color.BLACK, Variant.STANDARD, 300))
+                        opponent, 30, 0, False, Challenge_Color.BLACK, Variant.CHESS960, 300))
                 self.game_manager.request_challenge(*challenges)
 
-            # ✅ Start game manager
             self.game_manager_task = asyncio.create_task(self.game_manager.run())
 
-            # ✅ Join tournament if requested
             if tournament_id:
                 self.game_manager.request_tournament_joining(
                     tournament_id, tournament_team, tournament_password)
-
-            # ✅ Start event handler
-            self.event_handler = Event_Handler(self.api, self.config, username, self.game_manager)
-            self.event_handler_task = asyncio.create_task(self.event_handler.run())
-
-
-            if tournament_id:
-                self.game_manager.request_tournament_joining(tournament_id, tournament_team, tournament_password)
 
             self.event_handler = Event_Handler(self.api, self.config, username, self.game_manager)
             self.event_handler_task = asyncio.create_task(self.event_handler.run())
@@ -183,7 +171,6 @@ class User_Interface:
         if len(command) != 2:
             print(COMMANDS['blacklist'])
             return
-
         self.config.blacklist.append(command[1].lower())
         print(f'Added {command[1]} to the blacklist.')
 
@@ -241,7 +228,6 @@ class User_Interface:
         if len(command) != 2:
             print(COMMANDS['leave'])
             return
-
         self.game_manager.request_tournament_leaving(command[1])
 
     def _clear(self) -> None:
@@ -263,25 +249,20 @@ class User_Interface:
         if last_challenge_event is None:
             print('No last challenge available.')
             return
-
         if last_challenge_event['speed'] == 'correspondence':
             print('Correspondence is not supported by BotLi.')
             return
-
         opponent_username: str = last_challenge_event['challenger']['name']
         initial_time: int = last_challenge_event['timeControl']['limit']
         increment: int = last_challenge_event['timeControl']['increment']
         rated: bool = last_challenge_event['rated']
         event_color: str = last_challenge_event['color']
         variant = Variant(last_challenge_event['variant']['key'])
-
-        if event_color == 'white':
-            color = Challenge_Color.BLACK
-        elif event_color == 'black':
-            color = Challenge_Color.WHITE
-        else:
-            color = Challenge_Color.RANDOM
-
+        color = (
+            Challenge_Color.BLACK if event_color == 'white'
+            else Challenge_Color.WHITE if event_color == 'black'
+            else Challenge_Color.RANDOM
+        )
         challenge_request = Challenge_Request(opponent_username, initial_time, increment, rated, color, variant, 300)
         self.game_manager.request_challenge(challenge_request)
         print(f'Challenge against {challenge_request.opponent_username} added to the queue.')
@@ -290,13 +271,11 @@ class User_Interface:
         if len(command) != 2:
             print(COMMANDS['reset'])
             return
-
         try:
             perf_type = self._find_enum(command[1], Perf_Type)
         except ValueError as e:
             print(e)
             return
-
         self.game_manager.matchmaking.opponents.reset_release_time(perf_type)
         print('Matchmaking has been reset.')
 
@@ -310,18 +289,15 @@ class User_Interface:
         if len(command) < 2 or len(command) > 4:
             print(COMMANDS['tournament'])
             return
-
         tournament_id = command[1]
         tournament_team = command[2] if len(command) > 2 else None
         tournament_password = command[3] if len(command) > 3 else None
-
         self.game_manager.request_tournament_joining(tournament_id, tournament_team, tournament_password)
 
     def _whitelist(self, command: list[str]) -> None:
         if len(command) != 2:
             print(COMMANDS['whitelist'])
             return
-
         self.config.whitelist.append(command[1].lower())
         print(f'Added {command[1]} to the whitelist.')
 
@@ -334,7 +310,6 @@ class User_Interface:
         for enum in enum_type:
             if enum.lower() == name.lower():
                 return enum
-
         raise ValueError(f'{name} is not a valid {enum_type}')
 
     def signal_handler(self, *_) -> None:
@@ -352,7 +327,6 @@ class Autocompleter:
                 self.matches = [s for s in self.options if s and s.startswith(text)]
             else:
                 self.matches = self.options[:]
-
         try:
             return self.matches[state]
         except IndexError:
@@ -368,8 +342,7 @@ if __name__ == '__main__':
     parser.add_argument('--password', type=str, help='The tournament password, if one is required.')
     parser.add_argument('--upgrade', '-u', action='store_true', help='Upgrade account to BOT account.')
     parser.add_argument('--debug', '-d', action='store_true', help='Enable debug logging.')
-    parser.add_argument('--autochallenge', '-a', type=str,
-                    help='If not in tournament, challenge this user 20 times.')
+    parser.add_argument('--autochallenge', '-a', type=str, help='If not in tournament, challenge this user 50 times.')
     args = parser.parse_args()
 
     if args.debug:
@@ -387,4 +360,3 @@ if __name__ == '__main__':
         ),
         debug=args.debug
     )
-
