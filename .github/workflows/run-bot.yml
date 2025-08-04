@@ -3,7 +3,7 @@ name: Run Bot
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */4 * * *' # runs every 4 hours
+    - cron: '0 */5 * * *'  
 
 jobs:
   run-bot:
@@ -17,42 +17,47 @@ jobs:
       TOKEN: ${{ secrets.TOKEN }}
 
     steps:
-      - name: Checkout code
+      - name: Setup Actions
         uses: actions/checkout@v3
 
-      - name: Setup Python
+      - name: Install Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
 
       - name: Install Requirements
         run: |
           pip install -r requirements.txt
 
-      - name: Insert Token
-        env:
-          TOKEN: ${{ secrets.TOKEN }}
+      - name: Fetch Token
         run: |
           sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
       - name: Download latest Stockfish dev 
         run: |
+          mkdir -p engines
           curl -L -o stockfish.zip http://abrok.eu/stockfish/latest/linux/stockfish_x64_modern.zip
           unzip -o stockfish.zip -d engines/
-          mv engines/stockfish* engines/stockfish
+          mv engines/stockfish_* engines/stockfish
           chmod +x engines/stockfish
 
-      - name: Download Stockfish 17.1 for Chess960
-        run: |
-          curl -L -o engines/newsf https://github.com/MaggiCoder16/maggibot_backup/releases/download/sf17/newsf
-          chmod +x engines/newsf
-
-      - name: Make Fairy Stockfish Executable
-        run: |
-          chmod +x engines/fairy-stockfish
-
-      - name: Install Extra Dependencies for Challenge Script
-        run: pip install requests
-      
       - name: Run Bot
-        run: python -u user_interface.py --autochallenge "NimsiluBot" --matchmaking  
+        run: |
+          echo "Starting bot..."
+          python3 -u user_interface.py "matchmaking" &
+          PID=$!
+          
+          # Auto-exit after 350 minutes (so restart runs without overlap)
+          ( sleep 20700 && echo "Time up. Killing bot..." && kill -SIGTERM $PID ) &
+          
+          wait $PID
+          echo "Bot ended cleanly."
+
+      - name: 🔁 Self-Restart (Fire-and-Forget)
+        if: always()
+        run: gh workflow run run-bot.yml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
