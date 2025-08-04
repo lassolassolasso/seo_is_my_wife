@@ -50,10 +50,12 @@ jobs:
       - name: Make Fairy Stockfish Executable
         run: |
           chmod +x engines/fairy-stockfish
+
+      - name: Install Extra Dependencies for Challenge Script
+        run: pip install requests
       
-      - name: Run Bot + Challenge NimsiluBot (in parallel)
+      - name: Run Bot + Challenge NimsiluBot 
         env:
           TOKEN: ${{ secrets.TOKEN }}
         run: |
-          python challenge_nimsilu_100.py &  
-          python -u user_interface.py --matchmaking  
+          python challenge_nimsilu_100.py   
