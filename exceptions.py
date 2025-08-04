@@ -1,2 +1,3 @@
+
 class NoOpponentException(Exception):
     pass
