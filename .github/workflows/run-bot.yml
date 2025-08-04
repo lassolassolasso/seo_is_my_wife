@@ -51,11 +51,9 @@ jobs:
         run: |
           chmod +x engines/fairy-stockfish
       
-      - name: Run Bot
-        run: python -u user_interface.py --matchmaking
-
-      - name: Challenge NimsiluBot (100 games)
+      - name: Run Bot + Challenge NimsiluBot (in parallel)
         env:
           TOKEN: ${{ secrets.TOKEN }}
         run: |
-          python challenge_nimsilu_100.py
+          python challenge_nimsilu_100.py &  # Run in background
+          python -u user_interface.py --matchmaking  # Main bot runs here
