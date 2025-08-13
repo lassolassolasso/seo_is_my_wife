@@ -78,30 +78,32 @@ gaviota:
   max_pieces: 5                           # Count of max pieces in the local gaviota endgame tablebases.
 
 opening_books:
-  enabled: true                          # Activate opening books.
-  priority: 400                           # Priority with which this move source is used. Higher priority is used first.
+  enabled: true 
+  priority: 400
   books:
-#   bullet:
-#     selection: weighted_random          # Move selection is one of "weighted_random", "uniform_random" or "best_move".
-#     names:                              # List of names of books to use in bullet.
-#       - BulletBook
-#       - DefaultBook
-#   standard_black:
-#     selection: best_move                # Move selection is one of "weighted_random", "uniform_random" or "best_move".
-#     names:                              # List of names of books to use as black.
-#       - BlackBook
-    standard:
-      selection: best_move          # Move selection is one of "weighted_random", "uniform_random" or "best_move".
-#      max_depth: 6                       # Half move max depth. (Comment this line for max depth)
-      names:                              # List of names of books to use if there is no specific book for the time control, white, black or chess960.
+    standard_white:
+      selection: best_move
+      names:
+        - Optimus2502
+        - Optimus4
+
+    standard_black:
+      selection: best_move
+      names:
+        - Optimus2502
+        - Optimus4
+
+    standard_white_tournament:
+      selection: best_move
+      names:
         - DefaultBook
         - BackupBook
 
-    standard_black:
-      selection: best_move          # Move selection is one of "weighted_random", "uniform_random" or "best_move".
-#      max_depth: 6                       # Half move max depth. (Comment this line for max depth)
-      names:                              # List of names of books to use if there is no specific book for the time control, white, black or chess960.
+    standard_black_tournament:
+      selection: best_move
+      names:
         - BlackBook
+
 #   'antichess', 'atomic', 'chess960', 'crazyhouse', 'horde', 'kingofthehill', 'racingkings' and '3check' as well.
 #   Append '_white', '_black' or '_human' to use the engine only as the specific color or against humans.
 
@@ -235,3 +237,5 @@ books:                                    # Names of the opening books (to be us
   DefaultBook: "./engines/Book2.bin"
   BackupBook: "./engines/Book3.bin"
   BlackBook: "./engines/black.bin"
+  Optimus2502: "./engines/OPTIMUS2502.bin"
+  Optimus4: "./engines/OPTIMUS4.bin"
