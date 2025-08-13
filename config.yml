@@ -90,8 +90,7 @@ opening_books:
     standard_black:
       selection: weighted_random
       names:
-        - Optimus2502
-        - Optimus4
+        - BlackBook
 
     standard_white_tournament:
       selection: best_move
