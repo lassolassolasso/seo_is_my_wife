@@ -47,7 +47,7 @@ jobs:
       - name: Run Bot
         run: |
           echo "Starting bot..."
-          python3 -u user_interface.py "matchmaking" &
+          python3 -u user_interface.py "tournament N6uXtePJ" &
           PID=$!
           
           # Auto-exit after 350 minutes (so restart runs without overlap)
@@ -55,6 +55,7 @@ jobs:
           
           wait $PID
           echo "Bot ended cleanly."
+
 
       - name: 🔁 Self-Restart (Fire-and-Forget)
         if: always()
