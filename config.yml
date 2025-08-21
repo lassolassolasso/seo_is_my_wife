@@ -153,8 +153,8 @@ online_moves:
 #   max_moves: 1                          # Max number of moves played from chessdb. (Comment this line for max moves)
   online_egtb:
     enabled: true                        # Activate online endgame tablebases from Lichess.
-    min_time: 20                           # Time the bot must have at least to use the online move. +10 seconds in games without increment.
-    timeout: 3                            # Time the server has to respond.
+    min_time: 5                           # Time the bot must have at least to use the online move. +10 seconds in games without increment.
+    timeout: 1                            # Time the server has to respond.
 
 offer_draw:
   enabled: true                           # Activate whether the bot should offer draw.
