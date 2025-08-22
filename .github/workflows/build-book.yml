@@ -18,24 +18,19 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install requests
+        pip install chess requests
 
     - name: Fetch games and build PGN
       run: python fetch_and_build.py
 
-    - name: Build Fairy-Stockfish
+    - name: Create Polyglot book
       run: |
-        git clone https://github.com/fairy-stockfish/Fairy-Stockfish.git
-        cd Fairy-Stockfish/src
-        make build ARCH=x86-64-modern
-        cd ../..
-
-    - name: Create Antichess Polyglot book
-      run: |
-        ./Fairy-Stockfish/src/fairy-stockfish makebook \
-          -pgn filtered_960_bots_2200plus.pgn \
-          -bin book.bin \
-          -max-ply 20 -quiet
+        ./engines/fairy-stockfish_x86-64-bmi2 makebook \
+          format=polyglot \
+          infile=filtered_960_bots_2200plus.pgn \
+          outfile=book.bin \
+          depth=16 \
+          max-ply=32
 
     - name: Move .bin to engines/
       run: |
@@ -45,5 +40,5 @@ jobs:
     - name: Upload book.bin as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: antichess-opening-book
+        name: chess960-opening-book
         path: engines/book.bin
