@@ -28,6 +28,7 @@ def fetch_games(username, min_rating=2800):
             game += line + "\n"
     if game and check_rating(game, min_rating):
         games.append(game.strip())
+    print(f"{username}: {len(games)} games collected")
     return games
 
 def check_rating(pgn, min_rating):
@@ -46,3 +47,4 @@ if __name__ == "__main__":
     with open("filtered_960_bots_2200plus.pgn", "w", encoding="utf-8") as f:
         for g in all_games:
             f.write(g + "\n\n")
+    print(f"Total collected: {len(all_games)} games")
