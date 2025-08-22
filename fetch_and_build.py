@@ -16,7 +16,10 @@ def fetch_games(username, min_rating=2800):
     r = requests.get(url, params=params, headers=headers, stream=True)
     games = []
     game = ""
-    for line in r.iter_lines(decode_unicode=True):
+    for line in r.iter_lines():
+        if line is None:
+            continue
+        line = line.decode("utf-8") if isinstance(line, bytes) else line
         if not line:
             if check_rating(game, min_rating):
                 games.append(game.strip())
