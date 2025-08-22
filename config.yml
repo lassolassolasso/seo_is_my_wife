@@ -29,6 +29,7 @@ engines:
       Move Overhead: 250                  # Increase if your bot flags games too often.
     limits:                               # Limits that end the move calculation early.
       time: 5.0                           # Max time per move in seconds.
+    EvalFile: "3check-cb5f517c228b.nnue:antichess-dd3cbe53cd4e.nnue:atomic-2cf13ff256cc.nnue:crazyhouse-8ebf84784ad2.nnue:horde-28173ddccabe.nnue:kingofthehill-978b86d0e6a4.nnue:racingkings-636b95f085e3.nnue"
 #     depth: 26                           # Max depth per move.
 #     nodes: 4000000                      # Max nodes per move.
 
@@ -44,6 +45,7 @@ engines:
       Move Overhead: 250                  # Increase if your bot flags games too often.
     limits:                               # Limits that end the move calculation early.
       time: 5.0                           # Max time per move in seconds.
+ 
 #      depth: 26                           # Max depth per move.
 #      nodes: 4000000                      # Max nodes per move.
 
