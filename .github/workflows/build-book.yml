@@ -1,44 +1,26 @@
-name: Build Crazyhouse Book
+name: build-crazyhouse-book
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - filter_and_build.py
-      - .github/workflows/crazyhouse-book.yml
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
       - name: Install dependencies
-        run: |
-          pip install requests
+        run: sudo apt-get update && sudo apt-get install -y g++ make
 
-      - name: Build polyglot
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y make g++
-          git clone https://github.com/ddugovic/polyglot.git
-          cd polyglot
-          make
-          sudo cp polyglot /usr/local/bin/
+      - name: Compile bookbuilder
+        run: g++ -O3 -o bookbuilder book_make.cpp polyglot/*.cpp
 
-      - name: Build Crazyhouse Opening Book
-        run: |
-          python filter_and_build.py
+      - name: Run script
+        run: python filter_and_build.py
 
-      - name: Upload book artifact
+      - name: Upload book
         uses: actions/upload-artifact@v4
         with:
-          name: crazyhouse_book
-          path: crazyhouse_book.bin
+          name: crazyhouse-book
+          path: book.bin
