@@ -24,6 +24,15 @@ jobs:
         run: |
           pip install requests
 
+      - name: Build polyglot
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make g++
+          git clone https://github.com/ddugovic/polyglot.git
+          cd polyglot
+          make
+          sudo cp polyglot /usr/local/bin/
+
       - name: Build Crazyhouse Opening Book
         run: |
           python filter_and_build.py
