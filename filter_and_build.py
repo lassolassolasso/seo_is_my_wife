@@ -1,4 +1,3 @@
-
 import requests
 import json
 import time
@@ -11,9 +10,9 @@ import chess.variant
 BOTS = ["NimsiluBot", "ToromBot"]
 VARIANT = "crazyhouse"
 MIN_ELO = 2250
-CHUNK_SIZE = 5000          
+CHUNK_SIZE = 5000
 REQUEST_TIMEOUT = 120
-SLEEP_BETWEEN_CHUNKS = 0.4 
+SLEEP_BETWEEN_CHUNKS = 0.4
 MAX_PLY = 60
 MAX_BOOK_WEIGHT = 10000
 
@@ -21,10 +20,6 @@ PGN_OUTPUT = f"{VARIANT}_games.pgn"
 BOOK_OUTPUT = f"{VARIANT}_book.bin"
 
 def fetch_all_games_for_bot(bot: str) -> list[str]:
-    """
-    Returns a list of PGN strings (already filtered by rating >= MIN_ELO).
-    Uses 'until' pagination to walk back through the user's entire history.
-    """
     print(f"Fetching {VARIANT} games for {bot} (rating >= {MIN_ELO})...")
     base_url = f"https://lichess.org/api/games/user/{bot}"
     headers = {"Accept": "application/x-ndjson"}
@@ -87,7 +82,6 @@ def fetch_all_games_for_bot(bot: str) -> list[str]:
             if variant and variant != VARIANT:
                 continue
 
-            
             pgn = game.get("pgn")
             if pgn:
                 all_pgns.append(pgn)
@@ -136,7 +130,6 @@ class Book:
             if s <= 0:
                 continue
             for bm in pos.moves.values():
-                
                 bm.weight = max(1, int(bm.weight / s * MAX_BOOK_WEIGHT))
     def save_polyglot(self, path):
         entries = []
@@ -146,7 +139,7 @@ class Book:
                 if bm.weight <= 0 or bm.move is None:
                     continue
                 m = bm.move
-                if "@" in m.uci():
+                if "@" in m.uci():  
                     continue
                 mi = m.to_square + (m.from_square << 6)
                 if m.promotion:
@@ -180,6 +173,7 @@ def build_book_from_pgn(pgn_path, bin_path):
             continue
 
         board = chess.variant.CrazyhouseBoard()
+        result = game.headers.get("Result", "*")
         for ply, move in enumerate(game.mainline_moves()):
             if ply >= MAX_PLY:
                 break
@@ -187,11 +181,18 @@ def build_book_from_pgn(pgn_path, bin_path):
             pos = book.get_position(k)
             bm = pos.get_move(move.uci())
             bm.move = move
-            bm.weight += 1
+
+            # Weight stronger moves
+            if result == "1-0":
+                bm.weight += 2 if board.turn == chess.WHITE else 0
+            elif result == "0-1":
+                bm.weight += 2 if board.turn == chess.BLACK else 0
+            elif result == "1/2-1/2":
+                bm.weight += 1
             board.push(move)
 
         processed += 1
-        if processed % 200 == 0:
+        if processed % 100 == 0:
             print(f"Processed {processed} games")
 
     book.normalize()
