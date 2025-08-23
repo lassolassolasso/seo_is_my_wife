@@ -1,4 +1,4 @@
-name: Build Antichess Book (Manual)
+name: Build Crazyhouse Book (Manual)
 
 on:
   workflow_dispatch:
@@ -20,13 +20,13 @@ jobs:
           pip install --upgrade pip
           pip install chess requests
 
-      - name: Fetch games + build anti book
+      - name: Fetch games + build crazyhouse book
         run: python filter_and_build.py
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: antichess-book
+          name: crazyhouse-book
           path: |
-            antichess_games.pgn
-            anti_book.bin
+            crazyhouse_games.pgn
+            crazyhouse_book.bin
