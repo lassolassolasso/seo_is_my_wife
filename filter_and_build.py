@@ -1,103 +1,75 @@
 import requests
 import json
-import subprocess
 import os
+import subprocess
 
-# Config
-BOTS = ["NimsiluBot", "ToromBot"]
-MAX_PLY = 40
+BOTS = [
+    "NimsiluBot",
+    "ToromBot"
+]
+
 MAX_GAMES = 2000000
-VARIANT = "crazyhouse"
+MAX_PLY = 40
 
 def fetch_games(bot):
     print(f"Fetching games for {bot}...")
     url = f"https://lichess.org/api/games/user/{bot}"
     params = {
-        "max": 2000000,
-        "perfType": VARIANT,
+        "max": MAX_GAMES,
+        "perfType": "crazyhouse",
         "rated": "true",
-        "analysed": "true",
-        "pgnInJson": "true",
+        "analysed": "false",
         "clocks": "false",
-        "evals": "false"
+        "evals": "false",
+        "opening": "true",
+        "moves": "true",
+        "pgnInJson": "true",
     }
     headers = {"Accept": "application/x-ndjson"}
-    r = requests.get(url, params=params, headers=headers, stream=True)
-    filename = f"{bot}_{VARIANT}.ndjson"
+    resp = requests.get(url, params=params, headers=headers, stream=True)
+
+    filename = f"{bot}_crazyhouse.ndjson"
     with open(filename, "w", encoding="utf-8") as f:
-        for line in r.iter_lines():
+        for line in resp.iter_lines():
             if line:
                 f.write(line.decode("utf-8") + "\n")
     return filename
 
 def filter_games(ndjson_file):
-    print(f"Filtering {ndjson_file}...")
-    pgns = []
-    with open(ndjson_file, "r", encoding="utf-8") as f:
-        for line in f:
-            try:
-                game = json.loads(line)
-            except json.JSONDecodeError:
+    pgn_file = ndjson_file.replace(".ndjson", ".pgn")
+    print(f"Filtering {ndjson_file} -> {pgn_file}...")
+    with open(ndjson_file, "r", encoding="utf-8") as fin, open(pgn_file, "w", encoding="utf-8") as fout:
+        for line in fin:
+            game = json.loads(line)
+            if "moves" not in game or "players" not in game:
                 continue
-            if game.get("variant") != VARIANT:
-                continue
-            moves = game.get("moves", "").split()
+            moves = game["moves"].split()
             if len(moves) > MAX_PLY:
-                continue
-            pgn = game.get("pgn")
-            if pgn:
-                pgns.append(pgn)
-            if len(pgns) >= MAX_GAMES:
-                break
-    return pgns
-
-def build_polyglot(pgn_file, book_file):
-    print("Building Polyglot book...")
-    cpp_code = r'''
-    #include <iostream>
-    #include <fstream>
-    #include "polyglot.h"
-    int main(int argc, char** argv) {
-        if (argc < 3) {
-            std::cerr << "Usage: book_make <pgn> <bin>\n";
-            return 1;
-        }
-        std::ifstream pgn(argv[1]);
-        if (!pgn) {
-            std::cerr << "Cannot open PGN file\n";
-            return 1;
-        }
-        std::ofstream bin(argv[2], std::ios::binary);
-        if (!bin) {
-            std::cerr << "Cannot open BIN file\n";
-            return 1;
-        }
-        // minimal polyglot book creation (stub)
-        // in production, use full polyglot code
-        bin << "POLYGLOTBOOK";
-        return 0;
-    }
-    '''
-    with open("book_make.cpp", "w") as f:
-        f.write(cpp_code)
-    # Compile
-    subprocess.run(["g++", "book_make.cpp", "-o", "bookbuilder"], check=True)
-    # Run
-    subprocess.run(["./bookbuilder", pgn_file, book_file], check=True)
+                moves = moves[:MAX_PLY]
+            fout.write(game["pgn"] + "\n")
+    return pgn_file
 
 def main():
     all_pgns = []
     for bot in BOTS:
-        ndjson_file = fetch_games(bot)
-        all_pgns.extend(filter_games(ndjson_file))
-    # Save PGNs
-    pgn_file = "all_games.pgn"
-    with open(pgn_file, "w", encoding="utf-8") as f:
+        ndjson = fetch_games(bot)
+        pgn = filter_games(ndjson)
+        all_pgns.append(pgn)
+
+    merged_pgn = "crazyhouse_games.pgn"
+    with open(merged_pgn, "w", encoding="utf-8") as fout:
         for pgn in all_pgns:
-            f.write(pgn + "\n\n")
-    # Build Polyglot
-    build_polyglot(pgn_file, "book.bin")
-    print("Done! book.bin created.")
+            with open(pgn, "r", encoding="utf-8") as fin:
+                fout.write(fin.read())
+    print(f"Merged all PGNs -> {merged_pgn}")
+
+    print("Compiling Polyglot book builder...")
+    subprocess.run(["g++", "-O2", "book_make.cpp", "-o", "bookbuilder"], check=True)
+
+    print("Building Polyglot book...")
+    subprocess.run(["./bookbuilder", "make", "crazyhouse_games.pgn", "crazyhouse_book.bin"], check=True)
+
+    print("✅ Done! Book saved as crazyhouse_book.bin")
 
 if __name__ == "__main__":
     main()
