@@ -3,7 +3,7 @@ name: Build Antichess Opening Book
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * *" # daily at midnight
+    - cron: "0 0 * * *"
 
 jobs:
   build-book:
@@ -33,14 +33,14 @@ jobs:
         run: |
           echo "Downloading $LATEST_URL"
           wget -O antichess.pgn.zst "$LATEST_URL"
-          zstd -d antichess.pgn.zst -o antichess_all.pgn
+          zstd -d antichess.pgn.zst -o antichess.pgn   # rename to match script
 
       - name: Run filter_and_build.py
         run: |
-          python3 filter_and_build.py antichess_all.pgn antichess_book.bin --min-elo 2800 --max-ply 50
+          python3 filter_and_build.py
 
       - name: Upload Book
         uses: actions/upload-artifact@v4
         with:
           name: antichess_book
-          path: antichess_book.bin
+          path: book.bin
