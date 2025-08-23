@@ -1,6 +1,3 @@
-# filter_and_build.py
-# Fetch ALL Crazyhouse games for NimsiluBot & ToromBot with rating >= 2250,
-# merge to PGN, and build a Polyglot book (no external C++ needed).
 
 import requests
 import json
@@ -11,20 +8,18 @@ import chess.pgn
 import chess.polyglot
 import chess.variant
 
-# --------- CONFIG ---------
 BOTS = ["NimsiluBot", "ToromBot"]
 VARIANT = "crazyhouse"
 MIN_ELO = 2250
-CHUNK_SIZE = 5000          # lichess max per request
+CHUNK_SIZE = 5000          
 REQUEST_TIMEOUT = 120
-SLEEP_BETWEEN_CHUNKS = 0.4 # be polite to API
+SLEEP_BETWEEN_CHUNKS = 0.4 
 MAX_PLY = 60
 MAX_BOOK_WEIGHT = 10000
 
 PGN_OUTPUT = f"{VARIANT}_games.pgn"
 BOOK_OUTPUT = f"{VARIANT}_book.bin"
 
-# --------- FETCH ALL NDJSON (PAGINATED) ---------
 def fetch_all_games_for_bot(bot: str) -> list[str]:
     """
     Returns a list of PGN strings (already filtered by rating >= MIN_ELO).
@@ -45,14 +40,13 @@ def fetch_all_games_for_bot(bot: str) -> list[str]:
     }
 
     all_pgns: list[str] = []
-    # Walk backwards in time. Start with no 'until', then set to earliest timestamp seen - 1.
     until_ts: int | None = None
     total_lines = 0
     kept = 0
 
     while True:
         if until_ts is not None:
-            params["until"] = until_ts  # milliseconds since epoch
+            params["until"] = until_ts 
         else:
             params.pop("until", None)
 
@@ -73,13 +67,11 @@ def fetch_all_games_for_bot(bot: str) -> list[str]:
             except json.JSONDecodeError:
                 continue
 
-            # Track earliest createdAt to paginate further back
             created_at = game.get("createdAt")
             if isinstance(created_at, int):
                 if earliest_ts is None or created_at < earliest_ts:
                     earliest_ts = created_at
 
-            # Filter by rating >= MIN_ELO
             try:
                 w = game["players"]["white"]
                 b = game["players"]["black"]
@@ -91,13 +83,11 @@ def fetch_all_games_for_bot(bot: str) -> list[str]:
             if max(white_rating, black_rating) < MIN_ELO:
                 continue
 
-            # Keep only games that involve the target bot (redundant but safe) and correct variant
-            # API is already filtered by perfType, but double-check:
             variant = (game.get("variant") or "").lower()
             if variant and variant != VARIANT:
                 continue
 
-            # Accept PGN
+            
             pgn = game.get("pgn")
             if pgn:
                 all_pgns.append(pgn)
@@ -106,16 +96,14 @@ def fetch_all_games_for_bot(bot: str) -> list[str]:
         print(f"  chunk: got {batch_count} games, kept {kept} total so far")
 
         if batch_count == 0 or earliest_ts is None:
-            break  # no more data
+            break  
 
-        # Prepare next page further back in time
         until_ts = earliest_ts - 1
         time.sleep(SLEEP_BETWEEN_CHUNKS)
 
     print(f"Finished {bot}: processed {total_lines} lines, kept {kept} games ≥ {MIN_ELO}")
     return all_pgns
 
-# --------- MERGE & SAVE PGN ---------
 def save_merged_pgn(pgn_list: list[str], out_path: str) -> None:
     print("Merging PGNs...")
     with open(out_path, "w", encoding="utf-8") as f:
@@ -126,7 +114,6 @@ def save_merged_pgn(pgn_list: list[str], out_path: str) -> None:
             f.write("\n")
     print(f"Saved merged PGN to {out_path} ({len(pgn_list)} games)")
 
-# --------- PYTHON POLYGLOT BUILDER ---------
 class BookMove:
     def __init__(self):
         self.weight = 0
@@ -149,7 +136,7 @@ class Book:
             if s <= 0:
                 continue
             for bm in pos.moves.values():
-                # scale to MAX_BOOK_WEIGHT
+                
                 bm.weight = max(1, int(bm.weight / s * MAX_BOOK_WEIGHT))
     def save_polyglot(self, path):
         entries = []
@@ -159,7 +146,6 @@ class Book:
                 if bm.weight <= 0 or bm.move is None:
                     continue
                 m = bm.move
-                # Skip drop-style moves (not representable in classic polyglot)
                 if "@" in m.uci():
                     continue
                 mi = m.to_square + (m.from_square << 6)
@@ -169,7 +155,6 @@ class Book:
                 wbytes = bm.weight.to_bytes(2, "big")
                 lbytes = (0).to_bytes(4, "big")
                 entries.append(zbytes + mbytes + wbytes + lbytes)
-        # Sort by key then move bytes as in Polyglot
         entries.sort(key=lambda e: (e[:8], e[10:12]))
         with open(path, "wb") as f:
             for e in entries:
@@ -191,7 +176,6 @@ def build_book_from_pgn(pgn_path, bin_path):
         game = chess.pgn.read_game(stream)
         if game is None:
             break
-        # Ensure variant
         if (game.headers.get("Variant", "") or "").lower() != VARIANT:
             continue
 
@@ -213,7 +197,6 @@ def build_book_from_pgn(pgn_path, bin_path):
     book.normalize()
     book.save_polyglot(bin_path)
 
-# --------- MAIN ---------
 def main():
     all_pgns = []
     for bot in BOTS:
