@@ -1,7 +1,6 @@
 import chess
 import chess.pgn
 import chess.polyglot
-import datetime
 
 MAX_BOOK_PLIES = 20
 MAX_BOOK_WEIGHT = 10000
@@ -58,7 +57,7 @@ class Book:
             entries.sort(key=lambda e: (e[:8], e[10:12]))
             for entry in entries:
                 outfile.write(entry)
-            print(f"Saved {len(entries)} moves to book: {path}")
+            print(f"✅ Saved {len(entries)} moves to book: {path}")
 
 class LichessGame:
     def __init__(self, game):
@@ -67,17 +66,16 @@ class LichessGame:
     def result(self):
         return self.game.headers.get("Result", "*")
 
-    def score(self):
+    def score(self, board):
+        """Return score depending on Antichess rules (side to move should want to LOSE pieces)."""
         res = self.result()
-        return {"1-0": 2, "1/2-1/2": 1}.get(res, 0)
-
-def correct_castling_uci(uci, board):
-    if board.piece_at(chess.parse_square(uci[:2])).piece_type == chess.KING:
-        if uci == "e1g1": return "e1h1"
-        if uci == "e1c1": return "e1a1"
-        if uci == "e8g8": return "e8h8"
-        if uci == "e8c8": return "e8a8"
-    return uci
+        if res == "1-0":
+            return 2 if board.turn == chess.WHITE else 0
+        if res == "0-1":
+            return 2 if board.turn == chess.BLACK else 0
+        if res == "1/2-1/2":
+            return 1
+        return 0
 
 def build_book_file(pgn_path, book_path):
     book = Book()
@@ -85,19 +83,22 @@ def build_book_file(pgn_path, book_path):
         for i, game in enumerate(iter(lambda: chess.pgn.read_game(pgn_file), None), start=1):
             if i % 100 == 0:
                 print(f"Processed {i} games")
+            if game is None:
+                break
+            if game.headers.get("Variant", "").lower() != "antichess":
+                continue
+
             ligame = LichessGame(game)
             board = game.board()
-            score = ligame.score()
             ply = 0
             for move in game.mainline_moves():
                 if ply >= MAX_BOOK_PLIES:
                     break
-                uci = correct_castling_uci(move.uci(), board)
                 zobrist_key_hex = get_zobrist_key_hex(board)
                 position = book.get_position(zobrist_key_hex)
-                bm = position.get_move(uci)
-                bm.move = chess.Move.from_uci(uci)
-                bm.weight += score if board.turn == chess.WHITE else (2 - score)
+                bm = position.get_move(move.uci())
+                bm.move = move
+                bm.weight += ligame.score(board)
                 board.push(move)
                 ply += 1
 
@@ -105,4 +106,4 @@ def build_book_file(pgn_path, book_path):
     book.save_as_polyglot(book_path)
 
 if __name__ == "__main__":
-    build_book_file("filtered_960_bots_2200plus.pgn", "book.bin")
+    build_book_file("antichess_games.pgn", "anti_book.bin")
