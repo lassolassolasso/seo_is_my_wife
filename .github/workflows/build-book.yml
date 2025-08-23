@@ -13,14 +13,21 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y zstd gcc make wget python3
+          sudo apt-get install -y zstd wget gcc make python3
 
-      - name: Download Antichess PGN
+      - name: Fetch latest list of files
         run: |
-          wget -O antichess.pgn.zst https://database.lichess.org/antichess/antichess_games.pgn.zst
+          wget -O antichess_list.txt https://database.lichess.org/antichess/list.txt
+
+      - name: Set latest PGN ZST URL and download
+        id: download
+        run: |
+          LATEST=$(tail -n 1 antichess_list.txt)
+          echo "latest_file=$LATEST" >> $GITHUB_OUTPUT
+          wget -O antichess.pgn.zst https://database.lichess.org/antichess/$LATEST
           zstd -d antichess.pgn.zst -o antichess_all.pgn
 
       - name: Run filter_and_build.py
