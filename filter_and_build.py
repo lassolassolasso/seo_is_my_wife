@@ -7,8 +7,8 @@ import subprocess
 import os
 
 BOTS = ["ToromBot", "NimsiluBot"]
-MIN_ELO = 2750
-MAX_BOOK_PLIES = 100
+MIN_ELO = 2770
+MAX_BOOK_PLIES = 50
 MAX_BOOK_WEIGHT = 10000
 
 # ---------- POLYGLOT BOOK CLASSES ----------
