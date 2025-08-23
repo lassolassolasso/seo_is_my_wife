@@ -1,69 +1,67 @@
+# crazyhouse_book.py
 import requests
-import subprocess
 import os
-import json
+import subprocess
 
-# Bots to fetch games from
-BOTS = ["NimsiluBot", "ToromBot"]
-
-# Config
-MAX_GAMES = 2000000   # max games per bot
+BOTS = ["NimsiluBot", "ToromBot"]   # you can add more bots here
 VARIANT = "crazyhouse"
-MAX_PLY = 40          # book depth
+PGN_FILE = "crazyhouse_games.pgn"
+BOOK_FILE = "crazyhouse_book.bin"
+
 
 def fetch_games(bot):
     url = f"https://lichess.org/api/games/user/{bot}"
     params = {
-        "max": MAX_GAMES,
+        "max": 500,   # number of games per bot
         "perfType": VARIANT,
+        "rated": "true",
         "moves": "true",
-        "pgnInJson": "true",
+        "pgnInJson": "false"
     }
     headers = {"Accept": "application/x-ndjson"}
 
-    out_file = f"{bot}.ndjson"
-    print(f"Fetching {VARIANT} games for {bot}...")
     r = requests.get(url, params=params, headers=headers, stream=True)
-    r.raise_for_status()
-    with open(out_file, "wb") as f:
-        for chunk in r.iter_content(chunk_size=8192):
-            f.write(chunk)
+    pgn_file = f"{bot}_{VARIANT}.pgn"
+    with open(pgn_file, "w", encoding="utf-8") as f:
+        for line in r.iter_lines():
+            if line:
+                f.write(line.decode("utf-8") + "\n")
 
-    return out_file
-
-def ndjson_to_pgn(ndjson_file):
-    pgn_file = ndjson_file.replace(".ndjson", ".pgn")
-    print(f"Converting {ndjson_file} -> {pgn_file}...")
-    with open(ndjson_file, "r", encoding="utf-8") as f_in, open(pgn_file, "w", encoding="utf-8") as f_out:
-        for line in f_in:
-            if line.strip():
-                game = json.loads(line)
-                if "pgn" in game:
-                    f_out.write(game["pgn"] + "\n\n")
     return pgn_file
 
+
+def merge_pgns(pgn_files):
+    with open(PGN_FILE, "w", encoding="utf-8") as outfile:
+        for fname in pgn_files:
+            with open(fname, "r", encoding="utf-8") as infile:
+                outfile.write(infile.read())
+
+
+def build_book():
+    # assumes polyglot is already installed in your repo
+    subprocess.run([
+        "polyglot",
+        "make-book",
+        "-pgn", PGN_FILE,
+        "-bin", BOOK_FILE,
+        "-max-ply", "40",
+        "-max-games", "2000000"
+    ], check=True)
+
+
 def main():
-    all_pgns = []
+    pgns = []
     for bot in BOTS:
-        ndjson_file = fetch_games(bot)
-        pgn_file = ndjson_to_pgn(ndjson_file)
-        all_pgns.append(pgn_file)
+        print(f"Fetching {VARIANT} games for {bot}...")
+        pgns.append(fetch_games(bot))
 
-    merged_pgn = f"{VARIANT}_games.pgn"
-    print(f"Merging all PGNs into {merged_pgn}...")
-    with open(merged_pgn, "w", encoding="utf-8") as out:
-        for pgn in all_pgns:
-            with open(pgn, "r", encoding="utf-8") as f:
-                out.write(f.read())
+    print("Merging PGNs...")
+    merge_pgns(pgns)
 
-    print("Compiling Polyglot book builder...")
-    subprocess.run(["g++", "-O2", "book_make.cpp", "-o", "bookbuilder"], check=True)
+    print("Building book...")
+    build_book()
+    print("Done! Book saved as", BOOK_FILE)
 
-    output_bin = f"{VARIANT}_book.bin"
-    print(f"Building {output_bin} (depth {MAX_PLY})...")
-    subprocess.run(["./bookbuilder", "make-book", merged_pgn, output_bin, str(MAX_PLY)], check=True)
-
-    print("Done! Book saved as", output_bin)
 
 if __name__ == "__main__":
     main()
