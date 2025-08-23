@@ -1,46 +1,36 @@
-name: Build .bin Book
+name: Build Antichess Book
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:    
 
 jobs:
-  convert:
+  build-book:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Install Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y g++ make zstd wget
 
-    - name: Install dependencies
-      run: |
-        pip install chess requests
+      - name: Download latest Antichess PGN.zst
+        run: |
+          wget -O antichess.pgn.zst https://database.lichess.org/antichess/lichess_db_antichess_rated_2025-07.pgn.zst
+          unzstd antichess.pgn.zst -o antichess.pgn
 
-    - name: Fetch games and build PGN
-      run: python fetch_and_build.py
+      - name: Compile Polyglot
+        run: |
+          git clone https://github.com/ddugovic/polyglot.git
+          cd polyglot
+          make
+          cp polyglot ../polyglot
 
-    - name: Create Polyglot book
-      run: |
-        chmod +x ./engines/fairy-stockfish_x86-64-bmi2
-        ./engines/fairy-stockfish_x86-64-bmi2 makebook \
-          format=polyglot \
-          infile=filtered_960_bots_2200plus.pgn \
-          outfile=book.bin \
-          depth=16 \
-          max-ply=32
+      - name: Run filter + build
+        run: python3 filter_and_build.py
 
-
-    - name: Move .bin to engines/
-      run: |
-        mkdir -p engines
-        mv book.bin engines/
-
-    - name: Upload book.bin as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: chess960-opening-book
-        path: engines/book.bin
+      - name: Upload book.bin
+        uses: actions/upload-artifact@v4
+        with:
+          name: antichess-book
+          path: book.bin
