@@ -1,6 +1,6 @@
 import subprocess
 
-INPUT_PGN = "lichess_antichess_2025-07.pgn"   
+INPUT_PGN = "antichess.pgn"
 FILTERED_PGN = "antichess_2800plus.pgn"
 BOOK_BIN = "book.bin"
 
@@ -38,7 +38,7 @@ def check_rating(game_lines, min_elo):
 
 def make_bin(pgn, output_bin, ply=50):
     cmd = [
-        "polyglot", "make-book",
+        "./polyglot", "make-book",
         "-pgn", pgn,
         "-bin", output_bin,
         "-max-ply", str(ply)
