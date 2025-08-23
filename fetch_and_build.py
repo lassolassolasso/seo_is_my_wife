@@ -1,50 +1,51 @@
-import requests
+import subprocess
 
-def fetch_games(username, min_rating=2800):
-    url = f"https://lichess.org/api/games/user/{username}"
-    headers = {"Accept": "application/x-chess-pgn"}
-    params = {
-        "variant": "antichess",
-        "rated": "true",
-        "perfType": "antichess",
-        "clocks": "false",
-        "evals": "false",
-        "pgnInJson": "false",
-        "moves": "true",
-        "max": 3000
-    }
-    r = requests.get(url, params=params, headers=headers, stream=True)
-    games = []
-    game = ""
-    for line in r.iter_lines():
-        if line is None:
-            continue
-        line = line.decode("utf-8") if isinstance(line, bytes) else line
-        if not line:
-            if check_rating(game, min_rating):
-                games.append(game.strip())
-            game = ""
+INPUT_PGN = "lichess_antichess_2025-07.pgn"   
+FILTERED_PGN = "antichess_2800plus.pgn"
+BOOK_BIN = "book.bin"
+
+def filter_games(input_pgn, output_pgn, min_elo=2800):
+    with open(input_pgn, "r", encoding="utf-8", errors="ignore") as f:
+        lines = f.readlines()
+
+    games, game = [], []
+    for line in lines:
+        if line.strip() == "":
+            if check_rating(game, min_elo):
+                games.append("".join(game))
+            game = []
         else:
-            game += line + "\n"
-    if game and check_rating(game, min_rating):
-        games.append(game.strip())
-    print(f"{username}: {len(games)} games collected")
-    return games
+            game.append(line)
+    if check_rating(game, min_elo):
+        games.append("".join(game))
 
-def check_rating(pgn, min_rating):
+    with open(output_pgn, "w", encoding="utf-8") as f:
+        for g in games:
+            f.write(g + "\n\n")
+
+    print(f"Filtered: {len(games)} games saved to {output_pgn}")
+
+def check_rating(game_lines, min_elo):
     w = b = 0
-    for line in pgn.splitlines():
+    for line in game_lines:
         if line.startswith("[WhiteElo "):
-            w = int(line.split('"')[1])
+            try: w = int(line.split('"')[1])
+            except: pass
         elif line.startswith("[BlackElo "):
-            b = int(line.split('"')[1])
-    return w >= min_rating and b >= min_rating
+            try: b = int(line.split('"')[1])
+            except: pass
+    return w >= min_elo and b >= min_elo
+
+def make_bin(pgn, output_bin, ply=50):
+    cmd = [
+        "polyglot", "make-book",
+        "-pgn", pgn,
+        "-bin", output_bin,
+        "-max-ply", str(ply)
+    ]
+    subprocess.run(cmd, check=True)
+    print(f"Book created: {output_bin}")
 
 if __name__ == "__main__":
-    all_games = []
-    all_games.extend(fetch_games("NimsiluBot"))
-    all_games.extend(fetch_games("ToromBot"))
-    with open("filtered_960_bots_2200plus.pgn", "w", encoding="utf-8") as f:
-        for g in all_games:
-            f.write(g + "\n\n")
-    print(f"Total collected: {len(all_games)} games")
+    filter_games(INPUT_PGN, FILTERED_PGN)
+    make_bin(FILTERED_PGN, BOOK_BIN, ply=50)
