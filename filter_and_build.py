@@ -1,67 +1,59 @@
-# crazyhouse_book.py
 import requests
-import os
 import subprocess
+import os
 
-BOTS = ["NimsiluBot", "ToromBot"]   # you can add more bots here
+BOTS = ["NimsiluBot", "ToromBot"]
 VARIANT = "crazyhouse"
-PGN_FILE = "crazyhouse_games.pgn"
-BOOK_FILE = "crazyhouse_book.bin"
-
+OUTPUT_PGN = "merged.pgn"
+BOOK_BIN = "book.bin"
+MAX_PLY = "40"
+MAX_GAMES = "2000000"
 
 def fetch_games(bot):
     url = f"https://lichess.org/api/games/user/{bot}"
     params = {
-        "max": 500,   # number of games per bot
+        "max": 5550000,
         "perfType": VARIANT,
-        "rated": "true",
+        "analysed": "false",
+        "clocks": "false",
+        "evals": "false",
         "moves": "true",
         "pgnInJson": "false"
     }
-    headers = {"Accept": "application/x-ndjson"}
-
+    headers = {"Accept": "application/x-chess-pgn"}
+    print(f"Fetching {VARIANT} games for {bot}...")
     r = requests.get(url, params=params, headers=headers, stream=True)
-    pgn_file = f"{bot}_{VARIANT}.pgn"
-    with open(pgn_file, "w", encoding="utf-8") as f:
-        for line in r.iter_lines():
-            if line:
-                f.write(line.decode("utf-8") + "\n")
+    r.raise_for_status()
+    fname = f"{bot}.pgn"
+    with open(fname, "w", encoding="utf-8") as f:
+        for chunk in r.iter_content(chunk_size=1024, decode_unicode=True):
+            f.write(chunk)
+    return fname
 
-    return pgn_file
-
-
-def merge_pgns(pgn_files):
-    with open(PGN_FILE, "w", encoding="utf-8") as outfile:
-        for fname in pgn_files:
+def merge_pgns(files, output):
+    print("Merging PGNs...")
+    with open(output, "w", encoding="utf-8") as outfile:
+        for fname in files:
             with open(fname, "r", encoding="utf-8") as infile:
                 outfile.write(infile.read())
-
+                outfile.write("\n")
 
 def build_book():
-    # assumes polyglot is already installed in your repo
+    print("Building book...")
     subprocess.run([
-        "polyglot",
-        "make-book",
-        "-pgn", PGN_FILE,
-        "-bin", BOOK_FILE,
-        "-max-ply", "40",
-        "-max-games", "2000000"
+        "./bookbuilder", "make",
+        "-pgn", OUTPUT_PGN,
+        "-bin", BOOK_BIN,
+        "-max-ply", MAX_PLY,
+        "-max-games", MAX_GAMES
     ], check=True)
 
-
 def main():
-    pgns = []
+    pgn_files = []
     for bot in BOTS:
-        print(f"Fetching {VARIANT} games for {bot}...")
-        pgns.append(fetch_games(bot))
-
-    print("Merging PGNs...")
-    merge_pgns(pgns)
-
-    print("Building book...")
+        pgn_files.append(fetch_games(bot))
+    merge_pgns(pgn_files, OUTPUT_PGN)
     build_book()
-    print("Done! Book saved as", BOOK_FILE)
-
 
 if __name__ == "__main__":
     main()
