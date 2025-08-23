@@ -1,7 +1,9 @@
-name: Build Antichess Book
+name: Build Antichess Opening Book
 
 on:
-  workflow_dispatch:    
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
 
 jobs:
   build-book:
@@ -9,28 +11,24 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Install tools
-        run: sudo apt-get update && sudo apt-get install -y g++ make zstd wget
-
-      - name: Download latest Antichess PGN.zst
+      - name: Install dependencies
         run: |
-          wget -O antichess.pgn.zst https://database.lichess.org/antichess/lichess_db_antichess_rated_2025-07.pgn.zst
-          unzstd antichess.pgn.zst -o antichess.pgn
+          sudo apt-get update
+          sudo apt-get install -y zstd gcc make wget python3
 
-      - name: Compile Polyglot
+      - name: Download Antichess PGN
         run: |
-          git clone https://github.com/ddugovic/polyglot.git
-          cd polyglot
-          make
-          cp polyglot ../polyglot
+          wget -O antichess.pgn.zst https://database.lichess.org/antichess/antichess_games.pgn.zst
+          zstd -d antichess.pgn.zst -o antichess_all.pgn
 
-      - name: Run filter + build
-        run: python3 filter_and_build.py
+      - name: Run filter_and_build.py
+        run: |
+          python3 filter_and_build.py antichess_all.pgn antichess_book.bin --min-elo 2800 --max-ply 50
 
-      - name: Upload book.bin
+      - name: Upload Book
         uses: actions/upload-artifact@v4
         with:
-          name: antichess-book
-          path: book.bin
+          name: antichess_book
+          path: antichess_book.bin
