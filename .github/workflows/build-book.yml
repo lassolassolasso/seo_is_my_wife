@@ -1,4 +1,4 @@
-name: build-crazyhouse-book
+name: Build Crazyhouse Book
 
 on:
   workflow_dispatch:
@@ -7,20 +7,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y g++ make
-
-      - name: Compile bookbuilder
-        run: g++ -O3 -o bookbuilder book_make.cpp polyglot/*.cpp
-
-      - name: Run script
-        run: python filter_and_build.py
-
-      - name: Upload book
-        uses: actions/upload-artifact@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          pip install --upgrade pip
+          pip install chess requests
+      - run: python filter_and_build.py
+      - uses: actions/upload-artifact@v4
         with:
           name: crazyhouse-book
-          path: book.bin
+          path: |
+            crazyhouse_games.pgn
+            crazyhouse_book.bin
