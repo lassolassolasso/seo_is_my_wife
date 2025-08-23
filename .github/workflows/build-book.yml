@@ -1,46 +1,32 @@
-name: Build Antichess Opening Book
+name: Build Antichess Book (Manual)
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * *"
 
 jobs:
-  build-book:
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y zstd gcc make wget python3
+          pip install --upgrade pip
+          pip install chess requests
 
-      - name: Get latest Antichess PGN URL
-        run: |
-          wget -O antichess_list.txt https://database.lichess.org/antichess/list.txt
-          LATEST=$(tail -n 1 antichess_list.txt)
-          if [[ "$LATEST" == http* ]]; then
-            URL="$LATEST"
-          else
-            URL="https://database.lichess.org/antichess/$LATEST"
-          fi
-          echo "LATEST_URL=$URL" >> $GITHUB_ENV
+      - name: Fetch games + build anti book
+        run: python filter_and_build.py
 
-      - name: Download and extract PGN
-        run: |
-          echo "Downloading $LATEST_URL"
-          wget -O antichess.pgn.zst "$LATEST_URL"
-          zstd -d antichess.pgn.zst -o antichess.pgn   # rename to match script
-
-      - name: Run filter_and_build.py
-        run: |
-          python3 filter_and_build.py
-
-      - name: Upload Book
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: antichess_book
-          path: book.bin
+          name: antichess-book
+          path: |
+            antichess_games.pgn
+            anti_book.bin
