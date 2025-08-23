@@ -1,32 +1,37 @@
-name: Build Crazyhouse Book (Manual)
+name: Build Crazyhouse Book
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - crazyhouse_book.py
+      - .github/workflows/crazyhouse-book.yml
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: '3.x'
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install chess requests
+          pip install requests
+          sudo apt-get update
+          sudo apt-get install -y polyglot
 
-      - name: Fetch games + build crazyhouse book
-        run: python filter_and_build.py
+      - name: Build Crazyhouse Opening Book
+        run: |
+          python crazyhouse_book.py
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload book artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: crazyhouse-book
-          path: |
-            crazyhouse_games.pgn
-            crazyhouse_book.bin
+          name: crazyhouse_book
+          path: crazyhouse_book.bin
