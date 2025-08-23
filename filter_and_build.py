@@ -3,60 +3,15 @@ import json
 import chess
 import chess.pgn
 import chess.polyglot
+import subprocess
 import os
 
-# ===== CONFIG =====
-BOTS = {"ToromBot", "NimsiluBot"}
-MIN_ELO = 2800
-MAX_BOOK_PLIES = 50  # Increased to include more moves
+BOTS = ["ToromBot", "NimsiluBot"]
+MIN_ELO = 2750
+MAX_BOOK_PLIES = 100
 MAX_BOOK_WEIGHT = 10000
 
-# ===== Fetch & filter games =====
-def fetch_games(username, filename):
-    url = f"https://lichess.org/api/games/user/{username}"
-    params = {
-        "max": 200000,
-        "perfType": "antichess",
-        "rated": "true",
-        "evals": "false",
-        "clocks": "false",
-        "opening": "true",
-        "pgnInJson": "true"
-    }
-    headers = {"Accept": "application/x-ndjson"}
-    with requests.get(url, params=params, headers=headers, stream=True) as r:
-        r.raise_for_status()
-        with open(filename, "w", encoding="utf-8") as f:
-            for line in r.iter_lines():
-                if line:
-                    f.write(line.decode("utf-8") + "\n")
-
-def filter_games(input_file, output_file):
-    with open(input_file, "r", encoding="utf-8") as f, open(output_file, "w", encoding="utf-8") as out:
-        for line in f:
-            game = json.loads(line)
-            if "players" not in game:
-                continue
-            try:
-                white = game["players"]["white"]["user"]["name"]
-                black = game["players"]["black"]["user"]["name"]
-                w_elo = game["players"]["white"].get("rating", 0)
-                b_elo = game["players"]["black"].get("rating", 0)
-            except Exception:
-                continue
-
-            if white in BOTS and black in BOTS and w_elo >= MIN_ELO and b_elo >= MIN_ELO:
-                if "pgn" in game:
-                    out.write(game["pgn"] + "\n\n")
-
-def merge_pgns(pgn_files, merged_file):
-    with open(merged_file, "w", encoding="utf-8") as out:
-        for f in pgn_files:
-            with open(f, "r", encoding="utf-8") as g:
-                out.write(g.read())
-    print(f"✅ Saved merged PGN to {merged_file}")
-
-# ===== Polyglot book classes =====
+# ---------- POLYGLOT BOOK CLASSES ----------
 def format_zobrist_key_hex(zobrist_key):
     return f"{zobrist_key:016x}"
 
@@ -95,7 +50,7 @@ class Book:
             for key_hex, pos in self.positions.items():
                 zbytes = bytes.fromhex(key_hex)
                 for uci, bm in pos.moves.items():
-                    if bm.weight <= 0:
+                    if bm.weight <= 0 or bm.move is None:
                         continue
                     move = bm.move
                     mi = move.to_square + (move.from_square << 6)
@@ -105,74 +60,118 @@ class Book:
                     wbytes = bm.weight.to_bytes(2, byteorder="big")
                     lbytes = (0).to_bytes(4, byteorder="big")
                     entries.append(zbytes + mbytes + wbytes + lbytes)
+
             entries.sort(key=lambda e: (e[:8], e[10:12]))
             for entry in entries:
                 outfile.write(entry)
             print(f"✅ Saved {len(entries)} moves to book: {path}")
 
-# ===== Game wrapper =====
-class LichessGame:
-    def __init__(self, game):
-        self.game = game
+# ---------- FETCH + FILTER GAMES ----------
+def fetch_games(username, filename):
+    """Fetch all Antichess games for a bot (any opponent)"""
+    url = f"https://lichess.org/api/games/user/{username}"
+    params = {
+        "max": 200000,
+        "perfType": "antichess",
+        "rated": "true",
+        "evals": "false",
+        "clocks": "false",
+        "opening": "true",
+        "pgnInJson": "true"
+    }
+    headers = {"Accept": "application/x-ndjson"}
+    print(f"Fetching games for {username}...")
+    with requests.get(url, params=params, headers=headers, stream=True) as r:
+        r.raise_for_status()
+        with open(filename, "w", encoding="utf-8") as f:
+            for line in r.iter_lines():
+                if line:
+                    f.write(line.decode("utf-8") + "\n")
 
-    def result(self):
-        return self.game.headers.get("Result", "*")
+def filter_games(input_file, output_file):
+    """Filter PGN: Antichess, rated ≥MIN_ELO"""
+    print(f"Filtering {input_file}...")
+    with open(input_file, "r", encoding="utf-8") as f, open(output_file, "w", encoding="utf-8") as out:
+        for line in f:
+            game = json.loads(line)
+            if "players" not in game:
+                continue
+            try:
+                white_name = game["players"]["white"]["user"]["name"]
+                black_name = game["players"]["black"]["user"]["name"]
+                white_rating = game["players"]["white"].get("rating", 0)
+                black_rating = game["players"]["black"].get("rating", 0)
+            except Exception:
+                continue
 
-    def score(self, board):
-        """Antichess: side to move wants to lose pieces"""
-        res = self.result()
-        if res == "1-0":
-            return 2 if board.turn == chess.WHITE else 0
-        if res == "0-1":
-            return 2 if board.turn == chess.BLACK else 0
-        if res == "1/2-1/2":
-            return 1
-        return 0
+            if white_name in BOTS or black_name in BOTS:
+                if max(white_rating, black_rating) >= MIN_ELO:
+                    if "pgn" in game:
+                        out.write(game["pgn"] + "\n\n")
 
-# ===== Build Polyglot book =====
-def build_book_file(pgn_path, book_path):
+def merge_pgns(files, output_file):
+    print("Merging PGNs...")
+    with open(output_file, "w", encoding="utf-8") as out:
+        for f in files:
+            with open(f, "r", encoding="utf-8") as g:
+                out.write(g.read())
+    print(f"✅ Saved merged PGN to {output_file}")
+
+# ---------- BUILD BOOK ----------
+def build_polyglot_book(pgn_path, book_path):
+    print("Building Polyglot book...")
     book = Book()
-    with open(pgn_path) as pgn_file:
+    with open(pgn_path, "r", encoding="utf-8") as pgn_file:
         for i, game in enumerate(iter(lambda: chess.pgn.read_game(pgn_file), None), start=1):
-            if i % 100 == 0:
-                print(f"Processed {i} games")
             if game is None:
                 break
             if game.headers.get("Variant", "").lower() != "antichess":
                 continue
 
-            ligame = LichessGame(game)
             board = game.board()
-            ply = 0
-            for move in game.mainline_moves():
+            # Antichess: score depends on who should lose pieces
+            result = game.headers.get("Result", "*")
+            for ply, move in enumerate(game.mainline_moves()):
                 if ply >= MAX_BOOK_PLIES:
                     break
-                zobrist_key_hex = get_zobrist_key_hex(board)
-                position = book.get_position(zobrist_key_hex)
+                key_hex = get_zobrist_key_hex(board)
+                position = book.get_position(key_hex)
                 bm = position.get_move(move.uci())
                 bm.move = move
-                # Give every move minimum weight + Antichess scoring
-                bm.weight += 1 + ligame.score(board)
+                # Assign weight: win = 2 for losing side, draw = 1
+                if result == "1-0":
+                    bm.weight += 2 if board.turn == chess.WHITE else 0
+                elif result == "0-1":
+                    bm.weight += 2 if board.turn == chess.BLACK else 0
+                elif result == "1/2-1/2":
+                    bm.weight += 1
                 board.push(move)
-                ply += 1
 
+            if i % 100 == 0:
+                print(f"Processed {i} games")
     book.normalize_weights()
     book.save_as_polyglot(book_path)
 
-# ===== MAIN =====
+# ---------- MAIN ----------
+def main():
+    ndjson_files = []
+    pgn_files = []
+
+    # Fetch and filter each bot
+    for bot in BOTS:
+        ndjson_file = f"{bot}_antichess.ndjson"
+        pgn_file = f"{bot}_filtered.pgn"
+        fetch_games(bot, ndjson_file)
+        filter_games(ndjson_file, pgn_file)
+        ndjson_files.append(ndjson_file)
+        pgn_files.append(pgn_file)
+
+    # Merge all PGNs
+    merged_pgn = "antichess_games.pgn"
+    merge_pgns(pgn_files, merged_pgn)
+
+    # Build book
+    build_polyglot_book(merged_pgn, "anti_book.bin")
+
 if __name__ == "__main__":
-    print("Fetching games...")
-    fetch_games("NimsiluBot", "nimsilu_antichess.ndjson")
-    fetch_games("ToromBot", "torom_antichess.ndjson")
-
-    print("Filtering...")
-    filter_games("nimsilu_antichess.ndjson", "nimsilu_filtered.pgn")
-    filter_games("torom_antichess.ndjson", "torom_filtered.pgn")
-
-    print("Merging PGNs...")
-    merge_pgns(["nimsilu_filtered.pgn", "torom_filtered.pgn"], "antichess_games.pgn")
-
-    print("Building Polyglot book...")
-    build_book_file("antichess_games.pgn", "anti_book.bin")
-
-    print("✅ Done. anti_book.bin created!")
+    main()
