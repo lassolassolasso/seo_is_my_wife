@@ -1,87 +1,94 @@
-import requests
+import os
 import json
-import chess.pgn
-import io
 import subprocess
 
-# Config
-BOTS = ["NimsiluBot", "ToromBot"]
+# ========== CONFIG ==========
+BOTS = ["NimsiluBot", "ToromBot"]  # add more if needed
 VARIANT = "crazyhouse"
 MAX_GAMES = 2000000
-MIN_RATING = 2250
 MAX_PLY = 40
+OUTPUT_PGN = "all_games.pgn"
+BOOK_FILE = "book.bin"
+
+# ========== FUNCTIONS ==========
 
 def fetch_games(bot):
+    """Fetch games from Lichess API using lichess-cli"""
     print(f"Fetching games for {bot}...")
-    url = f"https://lichess.org/api/games/user/{bot}"
-    params = {
-        "max": MAX_GAMES,
-        "perfType": VARIANT,
-        "rated": "true",
-        "clocks": "true",
-        "evals": "false",
-        "pgnInJson": "true",
-    }
-    headers = {"Accept": "application/x-ndjson"}
-    response = requests.get(url, params=params, headers=headers, stream=True)
-    response.raise_for_status()
-    filename = f"{bot}_{VARIANT}.ndjson"
-    with open(filename, "w", encoding="utf-8") as f:
-        for line in response.iter_lines():
-            if line:
-                f.write(line.decode("utf-8") + "\n")
-    return filename
+    ndjson_file = f"{bot}_{VARIANT}.ndjson"
+    subprocess.run([
+        "lichess-cli", "games", bot,
+        "--variant", VARIANT,
+        "--max", str(MAX_GAMES),
+        "--rated", "true",
+        "--out", ndjson_file,
+        "--moves", "--evals", "--pgnInJson"
+    ], check=True)
+    return ndjson_file
 
-def filter_games(filename):
-    print(f"Filtering {filename}...")
+
+def filter_games(ndjson_file):
+    """Filter and convert NDJSON to PGN"""
+    print(f"Filtering {ndjson_file}...")
     pgns = []
-    with open(filename, encoding="utf-8") as f:
+    with open(ndjson_file, "r", encoding="utf-8") as f:
         for line in f:
-            game = json.loads(line.strip())
             try:
-                white_rating = game["players"]["white"]["rating"]
-                black_rating = game["players"]["black"]["rating"]
-                if white_rating < MIN_RATING or black_rating < MIN_RATING:
-                    continue
+                game = json.loads(line)
                 if game.get("variant") != VARIANT:
                     continue
-
-                pgn_str = game["pgn"]
-                pgn_io = io.StringIO(pgn_str)
-                pgn_game = chess.pgn.read_game(pgn_io)
-                if pgn_game is None:
+                if not game.get("moves"):
                     continue
-                if pgn_game.end().board().ply() > MAX_PLY:
+                if len(game["moves"].split()) > MAX_PLY:
                     continue
-
-                pgns.append(pgn_str)
+                pgn = game.get("pgn")
+                if pgn:
+                    pgns.append(pgn)
             except Exception:
                 continue
     return pgns
 
+
+def compile_polyglot():
+    """Compile book_make.cpp into polyglot binary"""
+    if not os.path.exists("book_make.cpp"):
+        print("Downloading book_make.cpp...")
+        subprocess.run([
+            "wget", "https://raw.githubusercontent.com/ddugovic/polyglot/master/book_make.cpp",
+            "-O", "book_make.cpp"
+        ], check=True)
+    print("Compiling polyglot...")
+    subprocess.run(["g++", "book_make.cpp", "-o", "polyglot"], check=True)
+
+
+def build_book(pgn_file, book_file):
+    """Build .bin Polyglot book"""
+    print("Building Polyglot book...")
+    subprocess.run([
+        "./polyglot", "make-book",
+        "-pgn", pgn_file,
+        "-bin", book_file,
+        "-max-ply", str(MAX_PLY),
+        "-games", str(MAX_GAMES)
+    ], check=True)
+
+
+# ========== MAIN ==========
 def main():
     all_pgns = []
     for bot in BOTS:
-        ndjson_file = fetch_games(bot)
-        all_pgns.extend(filter_games(ndjson_file))
+        ndjson = fetch_games(bot)
+        all_pgns.extend(filter_games(ndjson))
 
-    # Save PGNs
-    pgn_file = "crazyhouse_games.pgn"
-    with open(pgn_file, "w", encoding="utf-8") as f:
-        for g in all_pgns:
-            f.write(g + "\n\n")
+    print(f"Writing {len(all_pgns)} games to {OUTPUT_PGN}...")
+    with open(OUTPUT_PGN, "w", encoding="utf-8") as f:
+        for pgn in all_pgns:
+            f.write(pgn.strip() + "\n\n")
 
-    # Build Polyglot book
-    print("Building Polyglot book...")
-    with open("crazyhouse_games.pgn", "r") as f:
-        subprocess.run([
-            "polyglot", "make-book",
-            "-pgn", "crazyhouse_games.pgn",
-            "-bin", "crazyhouse_book.bin",
-            "-max-ply", str(MAX_PLY)
-        ], check=True)
+    compile_polyglot()
+    build_book(OUTPUT_PGN, BOOK_FILE)
+    print(f"✅ Done! Book saved to {BOOK_FILE}")
 
-    print(f"✅ Saved {len(all_pgns)} games to book: crazyhouse_book.bin")
 
 if __name__ == "__main__":
     main()
