@@ -18,7 +18,7 @@ MIN_ELO = 2250
 CHUNK_SIZE = 5000          # lichess max per request
 REQUEST_TIMEOUT = 120
 SLEEP_BETWEEN_CHUNKS = 0.4 # be polite to API
-MAX_PLY = 40
+MAX_PLY = 60
 MAX_BOOK_WEIGHT = 10000
 
 PGN_OUTPUT = f"{VARIANT}_games.pgn"
