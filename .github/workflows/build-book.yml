@@ -23,12 +23,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install requests
-          sudo apt-get update
-          sudo apt-get install -y polyglot
 
       - name: Build Crazyhouse Opening Book
         run: |
-          python crazyhouse_book.py
+          python filter_and_build.py
 
       - name: Upload book artifact
         uses: actions/upload-artifact@v4
