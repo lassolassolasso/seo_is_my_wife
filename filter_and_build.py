@@ -7,7 +7,7 @@ import subprocess
 import os
 
 BOTS = ["ToromBot", "NimsiluBot"]
-MIN_ELO = 2770
+MIN_ELO = 2475
 MAX_BOOK_PLIES = 50
 MAX_BOOK_WEIGHT = 10000
 
@@ -68,11 +68,11 @@ class Book:
 
 # ---------- FETCH + FILTER GAMES ----------
 def fetch_games(username, filename):
-    """Fetch all Antichess games for a bot (any opponent)"""
+    """Fetch all Three-Check games for a bot (any opponent)"""
     url = f"https://lichess.org/api/games/user/{username}"
     params = {
         "max": 200000,
-        "perfType": "antichess",
+        "perfType": "threeCheck",
         "rated": "true",
         "evals": "false",
         "clocks": "false",
@@ -89,7 +89,7 @@ def fetch_games(username, filename):
                     f.write(line.decode("utf-8") + "\n")
 
 def filter_games(input_file, output_file):
-    """Filter PGN: Antichess, rated ≥MIN_ELO"""
+    """Filter PGN: Three-Check, rated ≥MIN_ELO"""
     print(f"Filtering {input_file}...")
     with open(input_file, "r", encoding="utf-8") as f, open(output_file, "w", encoding="utf-8") as out:
         for line in f:
@@ -125,11 +125,10 @@ def build_polyglot_book(pgn_path, book_path):
         for i, game in enumerate(iter(lambda: chess.pgn.read_game(pgn_file), None), start=1):
             if game is None:
                 break
-            if game.headers.get("Variant", "").lower() != "antichess":
+            if game.headers.get("Variant", "").lower() != "threecheck":
                 continue
 
             board = game.board()
-            # Antichess: score depends on who should lose pieces
             result = game.headers.get("Result", "*")
             for ply, move in enumerate(game.mainline_moves()):
                 if ply >= MAX_BOOK_PLIES:
@@ -138,7 +137,7 @@ def build_polyglot_book(pgn_path, book_path):
                 position = book.get_position(key_hex)
                 bm = position.get_move(move.uci())
                 bm.move = move
-                # Assign weight: win = 2 for losing side, draw = 1
+                # Three-Check: winner gets 2, draw gets 1
                 if result == "1-0":
                     bm.weight += 2 if board.turn == chess.WHITE else 0
                 elif result == "0-1":
@@ -159,7 +158,7 @@ def main():
 
     # Fetch and filter each bot
     for bot in BOTS:
-        ndjson_file = f"{bot}_antichess.ndjson"
+        ndjson_file = f"{bot}_threecheck.ndjson"
         pgn_file = f"{bot}_filtered.pgn"
         fetch_games(bot, ndjson_file)
         filter_games(ndjson_file, pgn_file)
@@ -167,11 +166,11 @@ def main():
         pgn_files.append(pgn_file)
 
     # Merge all PGNs
-    merged_pgn = "antichess_games.pgn"
+    merged_pgn = "threecheck_games.pgn"
     merge_pgns(pgn_files, merged_pgn)
 
     # Build book
-    build_polyglot_book(merged_pgn, "anti_book.bin")
+    build_polyglot_book(merged_pgn, "threecheck_book.bin")
 
 if __name__ == "__main__":
     main()
