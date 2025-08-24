@@ -11,6 +11,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: List repo contents
+        run: ls -R
+
       - name: Search for correct config
         run: |
           MATCH=$(grep -rl 'token: "TokenTimeIsBackBuddyss"' Config/ || true)
