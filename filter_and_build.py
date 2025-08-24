@@ -7,7 +7,7 @@ import chess.pgn
 import chess.polyglot
 import chess.variant
 
-BOTS = ["NimsiluBot", "MaggiChess16"]
+BOTS = ["NimsiluBot", "MaggiChess16", "Loss-Not-Defined", "VariantsBot"]
 VARIANT = "horde"
 MIN_ELO = 2500
 CHUNK_SIZE = 5000
