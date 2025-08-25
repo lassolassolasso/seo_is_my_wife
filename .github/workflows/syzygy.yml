@@ -17,6 +17,10 @@ jobs:
           sudo apt-get install -y git git-lfs
           git lfs install
 
+      - name: Delete existing syzygy directory if it exists
+        run: |
+          rm -rf engines/syzygy
+
       - name: Clone source repository
         run: |
           git clone --depth 1 https://github.com/zonalraid45/Mypant.git temp_repo
@@ -31,6 +35,9 @@ jobs:
           git lfs track "engines/syzygy/**"
           git add .gitattributes
 
+      - name: Pull actual LFS files
+        run: git lfs pull
+
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
@@ -39,7 +46,7 @@ jobs:
       - name: Commit changes
         run: |
           git add engines/syzygy
-          git commit -m "Add syzygy folder from Mypant via Git LFS" || echo "No changes to commit"
+          git commit -m "Add Syzygy folder from Mypant via Git LFS" || echo "No changes to commit"
 
       - name: Push using PAT
         env:
