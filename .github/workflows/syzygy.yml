@@ -29,6 +29,10 @@ jobs:
         run: |
           mkdir -p engines
           cp -r temp_repo/engines/syzygy engines/
+          echo "Syzygy folder copied successfully."
+
+      - name: List copied files (debugging)
+        run: ls -R engines/syzygy
 
       - name: Track syzygy folder with Git LFS
         run: |
@@ -54,3 +58,4 @@ jobs:
         run: |
           git remote set-url origin https://$PAT_TOKEN@github.com/MaggiCoder16/NNUE_Final.git
           git push origin HEAD:main
+
