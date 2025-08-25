@@ -21,7 +21,6 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/zonalraid45/Mypant.git temp_repo
 
-
       - name: Copy syzygy folder into existing engines
         run: |
           mkdir -p engines
@@ -37,10 +36,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Commit and push changes
+      - name: Commit changes
         run: |
           git add engines/syzygy
           git commit -m "Add syzygy folder from Mypant via Git LFS" || echo "No changes to commit"
-          git push
+
+      - name: Push using PAT
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git remote set-url origin https://$PAT_TOKEN@github.com/MaggiCoder16/NNUE_Final.git
+          git push origin HEAD:main
