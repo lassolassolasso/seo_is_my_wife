@@ -18,12 +18,16 @@ jobs:
           git lfs install
 
       - name: Delete existing syzygy directory if it exists
-        run: |
-          rm -rf engines/syzygy
+        run: rm -rf engines/syzygy
 
       - name: Clone source repository
+        run: git clone --depth 1 https://github.com/zonalraid45/Mypant.git temp_repo
+
+      - name: Pull LFS files from source repo
         run: |
-          git clone --depth 1 https://github.com/zonalraid45/Mypant.git temp_repo
+          cd temp_repo
+          git lfs install
+          git lfs pull
 
       - name: Copy syzygy folder into existing engines
         run: |
@@ -32,15 +36,12 @@ jobs:
           echo "Syzygy folder copied successfully."
 
       - name: List copied files (debugging)
-        run: ls -R engines/syzygy
+        run: ls -lh engines/syzygy
 
       - name: Track syzygy folder with Git LFS
         run: |
           git lfs track "engines/syzygy/**"
           git add .gitattributes
-
-      - name: Pull actual LFS files
-        run: git lfs pull
 
       - name: Configure Git
         run: |
@@ -58,4 +59,5 @@ jobs:
         run: |
           git remote set-url origin https://$PAT_TOKEN@github.com/MaggiCoder16/NNUE_Final.git
           git push origin HEAD:main
+
 
