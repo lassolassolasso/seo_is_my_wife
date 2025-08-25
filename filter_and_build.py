@@ -8,10 +8,10 @@ import chess.pgn
 import chess.polyglot
 import chess.variant
 
-BOTS = ["NimsiluBot", "MaggiChess16", "VariantsBot"]
+BOTS = ["NimsiluBot", "VariantsBot"]
 
 VARIANT = "koth"
-MIN_ELO = 2530
+MIN_ELO = 2400
 CHUNK_SIZE = 5000
 REQUEST_TIMEOUT = 120
 SLEEP_BETWEEN_CHUNKS = 0.4
