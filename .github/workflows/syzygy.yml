@@ -19,7 +19,8 @@ jobs:
 
       - name: Clone source repository
         run: |
-          git clone --depth 1 github.com/zonalraid45/Mypant.git temp_repo
+          git clone --depth 1 https://github.com/zonalraid45/Mypant.git temp_repo
+
 
       - name: Copy syzygy folder into existing engines
         run: |
