@@ -11,7 +11,7 @@ import chess.variant
 BOTS = ["NimsiluBot", "VariantsBot"]
 
 VARIANT = "atomic"
-MIN_ELO = 2400
+MIN_ELO = 2550
 CHUNK_SIZE = 5000
 REQUEST_TIMEOUT = 120
 SLEEP_BETWEEN_CHUNKS = 0.4
