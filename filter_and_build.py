@@ -10,7 +10,7 @@ import chess.variant
 
 BOTS = ["NimsiluBot", "VariantsBot"]
 
-VARIANT = "koth"
+VARIANT = "atomic"
 MIN_ELO = 2400
 CHUNK_SIZE = 5000
 REQUEST_TIMEOUT = 120
@@ -212,7 +212,7 @@ def build_book_from_pgn(pgn_path: str, bin_path: str):
         except Exception:
             pass
 
-        board = chess.variant.KingOfTheHillBoard()
+        board = chess.variant.AtomicBoard()
         result = game.headers.get("Result", "*")
 
         for ply, move in enumerate(game.mainline_moves()):
