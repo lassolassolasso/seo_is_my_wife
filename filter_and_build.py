@@ -10,7 +10,7 @@ import chess.variant
 
 BOTS = ["NimsiluBot", "MaggiChess16", "VariantsBot"]
 
-VARIANT = "horde"
+VARIANT = "koth"
 MIN_ELO = 2530
 CHUNK_SIZE = 5000
 REQUEST_TIMEOUT = 120
