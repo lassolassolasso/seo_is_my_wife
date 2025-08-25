@@ -205,7 +205,7 @@ def build_book_from_pgn(pgn_path: str, bin_path: str):
         except Exception:
             pass
 
-        board = chess.variant.HordeBoard()
+        board = chess.variant.KothBoard()
         result = game.headers.get("Result", "*")
 
         for ply, move in enumerate(game.mainline_moves()):
