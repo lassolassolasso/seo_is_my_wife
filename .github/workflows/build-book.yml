@@ -19,5 +19,5 @@ jobs:
         with:
           name: book
           path: |
-            koth_games.pgn
-            koth_book.bin
+            atomic_games.pgn
+            atomic_book.bin
