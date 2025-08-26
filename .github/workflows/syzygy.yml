@@ -1,52 +1,32 @@
-name: Replace LFS with Normal Files in engines/syzygy/
+name: Download Syzygy
 
 on:
   workflow_dispatch:
 
 jobs:
-  convert-syzygy:
+  download:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo including LFS
+      - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
-      - name: Set Git identity
+      - name: Create syzygy directory
+        run: mkdir -p engines/syzygy
+
+      - name: Download 3-4-5 WDL
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          cd engines/syzygy
+          wget -r -np -nH --cut-dirs=4 -R "index.html*" https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/
 
-      - name: Replace LFS files with actual binaries
+      - name: Download 3-4-5 DTZ
         run: |
-          echo "Looking for LFS-tracked files in engines/syzygy/..."
-          git lfs ls-files -n | grep '^engines/syzygy/' > lfs_files.txt || true
+          cd engines/syzygy
+          wget -r -np -nH --cut-dirs=4 -R "index.html*" https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/
 
-          if [ -s lfs_files.txt ]; then
-            while read file; do
-              echo "Replacing $file with actual binary content"
-              cp "$file" "$file.bak"
-              git rm --cached "$file"
-              mv "$file.bak" "$file"
-              git add "$file"
-            done < lfs_files.txt
-            git commit -m "Replace LFS files in engines/syzygy/ with actual binaries"
-          else
-            echo "No LFS files found in engines/syzygy/"
-          fi
-
-      - name: Permanently untrack syzygy folder from LFS
+      - name: Commit and push syzygy files
         run: |
-          git lfs untrack "engines/syzygy/*"
-          git add .gitattributes
-          git commit -m "Stop tracking syzygy files with LFS" || echo "Nothing to commit"
-
-      - name: Push changes
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          git remote set-url origin https://$PAT_TOKEN@github.com/${{ github.repository }}
-          git push origin HEAD:main --force
-
-      - name: Cleanup temp file
-        run: rm -f lfs_files.txt
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add engines/syzygy/*
+          git commit -m "Add Syzygy 3-4-5 tablebases (WDL + DTZ)"
+          git push
