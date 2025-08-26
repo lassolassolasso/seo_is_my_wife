@@ -1,4 +1,4 @@
-name: Download Syzygy from Sesse.net
+name: Download Syzygy
 
 on:
   workflow_dispatch:
@@ -7,21 +7,33 @@ jobs:
   fetch-syzygy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo (no LFS)
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          lfs: false
+          lfs: false   # Do NOT pull LFS pointers
 
-      - name: Create engines/syzygy directory
+      - name: Disable Git LFS for syzygy files
+        run: |
+          git lfs uninstall
+          git rm --cached -r engines/syzygy || true
+          git config --global filter.lfs.smudge "cat"
+          git config --global filter.lfs.clean "cat"
+          echo "*.rtbw filter=" >> .gitattributes
+          echo "*.rtbz filter=" >> .gitattributes
+          echo "*.rtbwt filter=" >> .gitattributes
+          echo "*.rtbzt filter=" >> .gitattributes
+          echo "*.rtbm filter=" >> .gitattributes
+
+      - name: Make syzygy directory
         run: mkdir -p engines/syzygy
 
-      - name: Download full 3-4-5 Syzygy set
+      - name: Download Syzygy 3-4-5 WDL
         run: |
-          cd engines/syzygy
-          wget -c -r --no-parent --no-directories -e robots=off \
-            http://tablebase.sesse.net/syzygy/3-4-5/
+          wget -c -r -np -nH -nd -e robots=off \
+          http://tablebase.sesse.net/syzygy/3-4-5/ \
+          -P engines/syzygy
 
-      - name: Show some downloaded files
+      - name: Verify files
         run: ls -lh engines/syzygy | head -20
 
       - name: Commit and push binaries
@@ -29,5 +41,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add engines/syzygy
-          git commit -m "Add full 3-4-5 Syzygy tablebases (binary)"
+          git commit -m "Add full Syzygy tablebases (3-4-5) as real binaries"
           git push
