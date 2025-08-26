@@ -1,63 +1,40 @@
-name: Add Syzygy Engines via Git LFS
+name: Replace LFS with Normal Files in engines/syzygy/
 
 on:
   workflow_dispatch:
 
 jobs:
-  add-syzygy-lfs:
+  convert-syzygy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout this repository
+      - name: Checkout repo including LFS
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
-      - name: Install git and Git LFS
+      - name: Remove Git LFS tracking from engines/syzygy/
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git git-lfs
-          git lfs install
+          git lfs uninstall
+          echo "Looking for LFS-tracked files in engines/syzygy/..."
+          git lfs ls-files -n | grep '^engines/syzygy/' > lfs_files.txt || true
 
-      - name: Delete existing syzygy directory if it exists
-        run: rm -rf engines/syzygy
+          if [ -s lfs_files.txt ]; then
+            while read file; do
+              echo "Replacing $file with actual binary content"
+              # Save actual binary content before removing LFS tracking
+              cp "$file" "$file.bak"
+              git rm --cached "$file"
+              mv "$file.bak" "$file"
+              git add "$file"
+            done < lfs_files.txt
+            git commit -m "Replace LFS files in engines/syzygy/ with actual binaries"
+          else
+            echo "No LFS files found in engines/syzygy/"
+          fi
 
-      - name: Clone source repository
-        run: git clone --depth 1 https://github.com/zonalraid45/Mypant.git temp_repo
-
-      - name: Pull LFS files from source repo
-        run: |
-          cd temp_repo
-          git lfs install
-          git lfs pull
-
-      - name: Copy syzygy folder into existing engines
-        run: |
-          mkdir -p engines
-          cp -r temp_repo/engines/syzygy engines/
-          echo "Syzygy folder copied successfully."
-
-      - name: List copied files (debugging)
-        run: ls -lh engines/syzygy
-
-      - name: Track syzygy folder with Git LFS
-        run: |
-          git lfs track "engines/syzygy/**"
-          git add .gitattributes
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Commit changes
-        run: |
-          git add engines/syzygy
-          git commit -m "Add Syzygy folder from Mypant via Git LFS" || echo "No changes to commit"
-
-      - name: Push using PAT
+      - name: Push changes
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          git remote set-url origin https://$PAT_TOKEN@github.com/MaggiCoder16/NNUE_Final.git
-          git push origin HEAD:main
-
-
+          git remote set-url origin https://$PAT_TOKEN@github.com/${{ github.repository }}
+          git push origin HEAD:main --force
