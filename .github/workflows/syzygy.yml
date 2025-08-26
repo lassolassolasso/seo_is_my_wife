@@ -25,11 +25,13 @@ jobs:
           if [ -s lfs_files.txt ]; then
             while read file; do
               echo "Replacing $file with actual binary content"
-              cp "$file" "$file.bak"         # Preserve binary content
-              git rm --cached "$file"        # Remove LFS tracking
-              mv "$file.bak" "$file"         # Restore binary file
-              git add "$file"                # Add as normal Git file
+              cp "$file" "$file.bak"
+              git rm --cached "$file"
+              mv "$file.bak" "$file"
+              touch "$file"  # Force timestamp update
+              git add "$file"
             done < lfs_files.txt
+            git add lfs_files.txt
             git commit -m "Replace LFS files in engines/syzygy/ with actual binaries"
           else
             echo "No LFS files found in engines/syzygy/"
