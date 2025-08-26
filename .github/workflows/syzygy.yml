@@ -17,7 +17,7 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
-      - name: Remove Git LFS tracking from engines/syzygy/
+      - name: Replace LFS files with actual binaries
         run: |
           echo "Looking for LFS-tracked files in engines/syzygy/..."
           git lfs ls-files -n | grep '^engines/syzygy/' > lfs_files.txt || true
@@ -28,14 +28,18 @@ jobs:
               cp "$file" "$file.bak"
               git rm --cached "$file"
               mv "$file.bak" "$file"
-              touch "$file"  # Force timestamp update
               git add "$file"
             done < lfs_files.txt
-            git add lfs_files.txt
             git commit -m "Replace LFS files in engines/syzygy/ with actual binaries"
           else
             echo "No LFS files found in engines/syzygy/"
           fi
+
+      - name: Permanently untrack syzygy folder from LFS
+        run: |
+          git lfs untrack "engines/syzygy/*"
+          git add .gitattributes
+          git commit -m "Stop tracking syzygy files with LFS" || echo "Nothing to commit"
 
       - name: Push changes
         env:
@@ -43,3 +47,6 @@ jobs:
         run: |
           git remote set-url origin https://$PAT_TOKEN@github.com/${{ github.repository }}
           git push origin HEAD:main --force
+
+      - name: Cleanup temp file
+        run: rm -f lfs_files.txt
