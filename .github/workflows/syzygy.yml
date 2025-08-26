@@ -4,29 +4,36 @@ on:
   workflow_dispatch:
 
 jobs:
-  download:
+  fetch-syzygy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          lfs: false   # Do NOT pull LFS pointers
 
-      - name: Create syzygy directory
+      - name: Make syzygy directory
         run: mkdir -p engines/syzygy
 
-      - name: Download 3-4-5 WDL
+      - name: Download Syzygy 3-4-5 WDL
         run: |
-          cd engines/syzygy
-          wget -r -np -nH --cut-dirs=4 -R "index.html*" https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/
+          wget -c -r -np -nH -nd -e robots=off \
+          https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/ \
+          -P engines/syzygy
 
-      - name: Download 3-4-5 DTZ
+      - name: Download Syzygy 3-4-5 DTZ
         run: |
-          cd engines/syzygy
-          wget -r -np -nH --cut-dirs=4 -R "index.html*" https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/
+          wget -c -r -np -nH -nd -e robots=off \
+          https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/ \
+          -P engines/syzygy
 
-      - name: Commit and push syzygy files
+      - name: Verify files
+        run: ls -lh engines/syzygy | head -20
+
+      - name: Commit and push binaries
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add engines/syzygy/*
-          git commit -m "Add Syzygy 3-4-5 tablebases (WDL + DTZ)"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add engines/syzygy
+          git commit -m "Add full Syzygy tablebases (3-4-5)"
           git push
