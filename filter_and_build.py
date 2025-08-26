@@ -16,6 +16,7 @@ REQUEST_TIMEOUT = 120
 SLEEP_BETWEEN_CHUNKS = 0.4
 MAX_PLY = 60
 MAX_BOOK_WEIGHT = 2520
+MAX_GAMES = 10000   # safety cap
 
 PGN_OUTPUT = f"{VARIANT}_games.pgn"
 BOOK_OUTPUT = f"{VARIANT}_book.bin"
@@ -89,8 +90,8 @@ def fetch_all_games_for_bot(bot: str) -> list[str]:
             if max(white_rating, black_rating) < MIN_ELO:
                 continue
 
-            variant = (game.get("variant") or "").lower()
-            if variant and variant != VARIANT:
+            variant = (game.get("variant") or "").lower().replace(" ", "")
+            if VARIANT not in variant:
                 continue
 
             pgn = game.get("pgn")
@@ -98,9 +99,13 @@ def fetch_all_games_for_bot(bot: str) -> list[str]:
                 all_pgns.append(pgn)
                 kept += 1
 
+            if len(all_pgns) >= MAX_GAMES:
+                print(f"Reached max cap of {MAX_GAMES} games for {bot}")
+                break
+
         print(f"  chunk: got {batch_count} games, kept {kept} total so far")
 
-        if batch_count == 0 or earliest_ts is None:
+        if batch_count == 0 or earliest_ts is None or len(all_pgns) >= MAX_GAMES:
             break
 
         until_ts = earliest_ts - 1
@@ -159,7 +164,6 @@ class Book:
                 if bm.weight <= 0 or bm.move is None:
                     continue
                 m = bm.move
-                # skip drop-style moves (not relevant for Horde but safe)
                 if "@" in m.uci():
                     continue
                 mi = m.to_square + (m.from_square << 6)
@@ -169,7 +173,6 @@ class Book:
                 wbytes = min(MAX_BOOK_WEIGHT, bm.weight).to_bytes(2, "big")
                 lbytes = (0).to_bytes(4, "big")
                 entries.append(zbytes + mbytes + wbytes + lbytes)
-        # sort by Zobrist then by move bytes to get deterministic file
         entries.sort(key=lambda e: (e[:8], e[10:12]))
         with open(path, "wb") as f:
             for e in entries:
@@ -189,11 +192,14 @@ def build_book_from_pgn(pgn_path: str, bin_path: str):
     stream = io.StringIO(data)
 
     processed = 0
+    kept = 0
     while True:
         game = chess.pgn.read_game(stream)
         if game is None:
             break
-        if (game.headers.get("Variant", "") or "").lower() != VARIANT:
+
+        variant_tag = (game.headers.get("Variant", "") or "").lower().replace(" ", "")
+        if VARIANT not in variant_tag:
             continue
 
         board = chess.variant.CrazyhouseBoard()
@@ -203,31 +209,31 @@ def build_book_from_pgn(pgn_path: str, bin_path: str):
             if ply >= MAX_PLY:
                 break
 
-            k = key_hex(board)
-            pos = book.get_position(k)
-            bm = pos.get_move(move.uci())
-            bm.move = move
+            try:
+                k = key_hex(board)
+                pos = book.get_position(k)
+                bm = pos.get_move(move.uci())
+                bm.move = move
 
-            # Emphasize early moves (opening importance)
-            decay = max(1, (MAX_PLY - ply) // 5)
+                decay = max(1, (MAX_PLY - ply) // 5)
 
-            # Strong bias toward moves played by the eventual winner
-            if result == "1-0":
-                # If it's White to move (White played this move), reward heavily; small reward for Black's replies
-                bm.weight += (6 if board.turn == chess.WHITE else 1) * decay
-            elif result == "0-1":
-                bm.weight += (6 if board.turn == chess.BLACK else 1) * decay
-            elif result == "1/2-1/2":
-                bm.weight += 2 * decay
+                if result == "1-0":
+                    bm.weight += (6 if board.turn == chess.WHITE else 1) * decay
+                elif result == "0-1":
+                    bm.weight += (6 if board.turn == chess.BLACK else 1) * decay
+                elif result == "1/2-1/2":
+                    bm.weight += 2 * decay
 
-            board.push(move)
+                board.push(move)
+            except Exception:
+                break
 
         processed += 1
         if processed % 100 == 0:
             print(f"Processed {processed} games")
 
+    print(f"Parsed {processed} PGNs, kept {kept} KOTH games")
     book.normalize()
-    # Optional gentle variety to break ties (keeps strength but avoids lock-in)
     for pos in book.positions.values():
         for bm in pos.moves.values():
             bm.weight = min(MAX_BOOK_WEIGHT, bm.weight + random.randint(0, 3))
@@ -246,3 +252,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
