@@ -25,19 +25,14 @@ jobs:
 
       - name: Add NNUE remote
         run: |
-          git remote remove nnue || true
-          git remote add nnue https://github.com/MaggiCoder16/NNUE_Final.git
+          git remote add nnue https://github.com/MaggiCoder16/NNUE_Final.git || echo "NNUE already added"
           git fetch nnue main
 
-      - name: Merge changes into our repo
+      - name: Merge NNUE into our repo
         run: |
           git merge nnue/main --allow-unrelated-histories -X ours --no-edit || true
           git merge nnue/main -X ours --no-edit || true
-          git checkout --ours .
-          git add -A
-          git commit -m "Sync NNUE updates (ours wins on conflicts)" || echo "No changes to commit"
+          git commit -am "Sync NNUE updates (ours wins on conflicts)" || echo "No changes to commit"
 
       - name: Push changes
-        run: |
-          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/MaggiCoder16/Strain-On-Veins.git
-          git push origin main
+        run: git push origin main
