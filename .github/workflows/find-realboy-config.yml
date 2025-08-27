@@ -11,16 +11,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: List repo contents
-        run: ls -R
-
-      - name: Search for correct config
+      - name: Search config in remote repo
         run: |
-          MATCH=$(grep -rl 'token: "TokenTimeIsBackBuddyss"' Config/ || true)
-          if [ -z "$MATCH" ]; then
-            echo "No correct config file found."
+          echo "Fetching remote Config directory file list..."
+          FILES=$(curl -s https://raw.githubusercontent.com/zonalraid45/Mypant/main/Config/ | grep -Eo 'href="[^"]+"' | cut -d'"' -f2 | grep -v '/$' || true)
+          if [ -z "$FILES" ]; then
+            echo "Could not list files in remote Config directory."
             exit 1
-          else
-            echo "Correct config file found:"
-            echo "$MATCH"
+          fi
+
+          echo "Remote Config-containing files:"
+          echo "$FILES"
+
+          echo "Checking each file for desired token..."
+          FOUND=false
+          for f in $FILES; do
+            CONTENT=$(curl -s https://raw.githubusercontent.com/zonalraid45/Mypant/main/Config/$f)
+            if echo "$CONTENT" | grep -q 'token: "TokenTimeIsBackBuddyss"'; then
+              echo "  → Found in: $f"
+              FOUND=true
+            fi
+          done
+
+          if [ "$FOUND" = "false" ]; then
+            echo "No correct config file found in remote Config directory."
+            exit 1
           fi
