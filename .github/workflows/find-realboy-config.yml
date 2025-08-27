@@ -8,15 +8,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout target repo
         uses: actions/checkout@v3
+        with:
+          repository: zonalraid45/Mypant
+          path: target-repo
 
-      - name: List repo contents
-        run: ls -R
-
-      - name: Search for correct config
+      - name: Search config for token
         run: |
-          MATCH=$(grep -rl 'token: "TokenTimeIsBackBuddyss"' Config/ || true)
+          MATCH=$(grep -rl 'token: "TokenTimeIsBackBuddyss"' target-repo/Config/ || true)
           if [ -z "$MATCH" ]; then
             echo "No correct config file found."
             exit 1
