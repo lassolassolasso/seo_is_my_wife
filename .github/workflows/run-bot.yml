@@ -58,7 +58,7 @@ jobs:
           echo "Bot ended cleanly."
 
 
-      - name: 🔁 Self-Restart (Fire-and-Forget)
+      - name: Self-Restart (Fire-and-Forget)
         if: always()
         run: gh workflow run run-bot.yml
         env:
