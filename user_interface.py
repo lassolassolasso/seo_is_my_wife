@@ -53,7 +53,7 @@ class User_Interface:
             username: str = account['username']
             self.api.append_user_agent(username)
             await self._handle_bot_status(account.get('title'), allow_upgrade)
-#            await self._test_engines()
+            await self._test_engines()
 
             self.game_manager = Game_Manager(self.api, self.config, username)
             self.game_manager_task = asyncio.create_task(self.game_manager.run())
