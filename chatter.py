@@ -133,8 +133,6 @@ class Chatter:
         if room == 'spectator':
             last_message = self._append_pv(last_message)
         await self.api.send_chat_message(self.game_info.id_, room, last_message)
-            case _:
-                pass
 
     async def _handle_ping_command(self, chat_message: Chat_Message) -> None:
         ping_ms = await self._get_ping("lichess.org")
