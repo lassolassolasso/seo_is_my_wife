@@ -1,4 +1,3 @@
-# ... [imports and class definition as before] ...
 import os
 import platform
 from collections import defaultdict
@@ -89,6 +88,8 @@ class Chatter:
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, self.lichess_game.engine.name)
             case 'name':
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, self.name_message)
+            case 'ping':
+                await self._handle_ping_command(chat_message)
             case 'printeval':
                 if not self.game_info.increment_ms and self.game_info.initial_time_ms < 180_000:
                     await self._send_last_message(chat_message.room)
@@ -121,9 +122,9 @@ class Chatter:
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, quote)
             case 'help' | 'commands':
                 if chat_message.room == 'player':
-                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !ram, !roast, !destroy, !quotes'
+                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !ram, !ping, !roast, !destroy, !quotes'
                 else:
-                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !pv, !ram, !roast, !destroy, !quotes'
+                    message = 'Supported commands: !cpu, !draw, !eval, !motor, !name, !printeval, !pv, !ram, !ping, !roast, !destroy, !quotes'
                 await self.api.send_chat_message(self.game_info.id_, chat_message.room, message)
 
     async def _send_last_message(self, room: str) -> None:
@@ -132,6 +133,27 @@ class Chatter:
         if room == 'spectator':
             last_message = self._append_pv(last_message)
         await self.api.send_chat_message(self.game_info.id_, room, last_message)
+
+    async def _handle_ping_command(self, chat_message: Chat_Message) -> None:
+        ping_ms = await self._get_ping("lichess.org")
+        await self.api.send_chat_message(self.game_info.id_, chat_message.room, f"Ping: {ping_ms}")
+
+    async def _get_ping(self, host: str) -> str:
+        try:
+            count_flag = "-n" if platform.system().lower().startswith("win") else "-c"
+            proc = await asyncio.create_subprocess_exec(
+                "ping", count_flag, "1", host,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, _ = await proc.communicate()
+            output = stdout.decode()
+            for line in output.splitlines():
+                if "time=" in line.lower():
+                    return line.split("time=")[1].split()[0]
+            return "unknown"
+        except Exception as e:
+            return f"error: {e}"
 
     def _get_cpu(self) -> str:
         cpu = ''
