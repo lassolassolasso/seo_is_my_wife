@@ -11,7 +11,7 @@ jobs:
       - name: Checkout target repo (mainlassobot)
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Clone source repo (suprabot1)
         run: |
