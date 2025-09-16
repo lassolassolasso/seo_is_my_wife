@@ -36,15 +36,6 @@ jobs:
         run: |
           sed -i "s/^token:.*/token: \"${TOKEN}\"/" config.yml
 
-      - name: Download latest Stockfish dev 
-        run: |
-          mkdir -p engines
-          curl -L -o stockfish.zip http://abrok.eu/stockfish/latest/linux/stockfish_x64_modern.zip
-          unzip -o stockfish.zip -d engines/
-          mv engines/stockfish_* engines/stockfish
-          chmod +x engines/stockfish
-          chmod +x ./engines/fairy-stockfish_x86-64-bmi2
-
       - name: Run Bot
         run: |
           echo "Starting bot..."
