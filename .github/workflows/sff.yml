@@ -1,0 +1,29 @@
+name: Download Stockfish
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download-stockfish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Download & Extract Stockfish
+        run: |
+          mkdir -p engines
+          sudo apt-get update && sudo apt-get install -y unzip
+          curl -L -o stockfish.zip https://abrok.eu/stockfish/builds/2af2c67650c4ac2531e6ab2753830f91c0999876/win64bmi2/stockfish_18061109_x64_bmi2.zip
+          unzip -o stockfish.zip -d engines/
+          mv engines/stockfish_* engines/stockfish
+      - name: Commit and push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add engines/stockfish
+          git commit -m "Update Stockfish binary" || echo "No changes to commit"
+          git push origin main
