@@ -15,7 +15,7 @@ jobs:
         run: |
           mkdir -p engines
           sudo apt-get update && sudo apt-get install -y unzip
-          curl -L -o stockfish.zip https://abrok.eu/stockfish/builds/2af2c67650c4ac2531e6ab2753830f91c0999876/win64bmi2/stockfish_18061109_x64_bmi2.zip
+          curl -L -o stockfish.zip https://abrok.eu/stockfish/builds/b2a12917e2125fcd1e1c344165e840b0756201a8/linux64bmi2/stockfish_24070117_x64_bmi2.zip
           unzip -o stockfish.zip -d engines/
           mv engines/stockfish_* engines/stockfish
       - name: Commit and push
