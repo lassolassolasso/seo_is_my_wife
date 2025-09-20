@@ -7,7 +7,7 @@ on:
 
 jobs:
   cocky-crab:
-    name: Run CockyCrab BOT
+    name: Run seo BOT
     runs-on: ubuntu-latest
 
     concurrency:
@@ -41,7 +41,7 @@ jobs:
           python3 -u user_interface.py "matchmaking" 
 
   pensive-puffer:
-    name: Run PensivePuffer BOT
+    name: Run seo2 BOT
     runs-on: ubuntu-latest
 
     concurrency:
