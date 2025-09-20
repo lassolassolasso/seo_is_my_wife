@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: bot-restart
+      group: bot-restart-pensive
       cancel-in-progress: false
 
     env:
